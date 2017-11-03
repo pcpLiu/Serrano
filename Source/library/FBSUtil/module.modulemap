@@ -1,0 +1,4 @@
+module LibFBSUtil [system][extern_c] {
+	header "FBSUtil.h"
+	export *
+}

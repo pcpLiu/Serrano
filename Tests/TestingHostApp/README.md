@@ -1,0 +1,1 @@
+The TestingHostApp is just an empty app only being used for unit test.

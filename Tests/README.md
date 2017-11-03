@@ -1,0 +1,1 @@
+Since Metal library is not included in Xcode simulator. We need create a Host Applciation so that we can do Metal related Uit testing on iOS device.

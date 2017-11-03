@@ -1,0 +1,13 @@
+serrano.xcodeproj/xcuserdata
+.testing
+xcuserdata
+
+*.coverage.txt
+*.xccoverage.plist
+
+.cov/
+build/
+DerivedData/
+
+# auto generated local docs
+docs/generated_docs/*
