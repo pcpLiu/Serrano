@@ -341,7 +341,7 @@ public class SerranoResourceManager {
 				// slice tensor just uses root tensor's buffer with offset
 				if tensor.isSliceTensor {
 					targetTensor = tensor.sliceRootTensor!
-					offset = tensor.bytesOffsetFromRootTensor()!
+					offset = tensor.sliceRootTensor!.slicedTensorOffset(tensor)!
 				}
 				
 				// get MTLBuffer

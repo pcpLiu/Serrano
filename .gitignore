@@ -9,5 +9,5 @@ xcuserdata
 build/
 DerivedData/
 
-# auto generated local docs
-docs/generated_docs/*
+# generated local docs
+generated_docs/*

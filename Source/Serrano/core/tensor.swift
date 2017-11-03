@@ -104,9 +104,9 @@ infix operator .==: ComparisonPrecedence
  The tensor shape description. Specify the shape and data type of a `Tensor` data object.
  
  ## dataType
+ Indicate the initial set data type.
  
- 
- ## Shape
+ ## shapeArray
  The `shape` attrribute defines the dimension of a `Tensor` object. In `serrano`, we follow `row-marjor`
  order to store and access elements in a `Tensor` object and each __row__ is represented as an array.
  For a given shape array with `n` indices `[i_0, i_1, ..., i_(n-1)]`,  each index from `i_0` to `i_(n-2)` defines the number of rows in its
@@ -213,7 +213,7 @@ public struct TensorShape: Equatable, Comparable {
 	// MARK: - Methods
 	
     /// Check if `shape` array is valid
-    func shapeVerify() -> Bool {
+    public func shapeVerify() -> Bool {
         if self.shapeArray.count == 0 {
             return false
         }
@@ -227,13 +227,13 @@ public struct TensorShape: Equatable, Comparable {
     }
     
     /// Get `shape` array in reversed
-    func reversedShapArray() -> [Int] {
+    public func reversedShapArray() -> [Int] {
         return Array(self.shapeArray.reversed())
     }
 	
 	/// Get transposed shape of current shape.
 	/// - Note: only works for shapes with rank values as `2`. Otherwise, `fatalError` will be throws.
-	func transposed() -> TensorShape {
+	public func transposed() -> TensorShape {
 		guard self.rank == 2 else {
 			SerranoLogging.errorLogging(message: "Trying to get transposed shape from shape with rank \(self.rank)",
 				file: "\(#file)", function: "\(#function)", line: "\(#line)")
@@ -489,12 +489,9 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	/// The root tensor of a sliced tensor
 	internal var _sliceRootTensor: Tensor? = nil
 	
-	/// The parent tensor of a sliced tensor
-	internal var _sliceParentTensor: Tensor? = nil
-	
-	/// The index of this slice object in raw tensor.
+	/// The index array of this slice object in raw tensor.
 	/// `nil` if not a sliced tensor
-	internal var _sliceIndex: Int?
+	internal var _sliceIndex: [Int]?
     
     /// Count of data elements tored
     public var count: Int {
@@ -588,18 +585,9 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 		}
 	}
 	
-	
-	/// The parent tensor of a sliced tensor
-	/// - Note: `nil` if `_sliceMarker` is `false`
-	public var sliceParentTensor: Tensor? {
-		get {
-			return self._sliceParentTensor
-		}
-	}
-	
 	/// The index of this slice object in raw tensor.
 	/// `nil` if not a sliced tensor
-	public var sliceIndex: Int? {
+	public var sliceIndex: [Int]? {
 		get {
 			return self._sliceIndex
 		}
@@ -869,25 +857,17 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	///	  - sliceContentAddress: slice content address
 	///   - count: count
 	///   - shape: shape
-	internal init(sliceTensorFrom parentTensor: Tensor,
+	internal init(sliceTensorFrom rootTensor: Tensor,
 	              sliceContentAddress: UnsafeMutablePointer<Float>,
-	              count: Int, shape: TensorShape, index: Int) {
+	              count: Int, shape: TensorShape, index: [Int]) {
 		self._dataMemoryBaseAdrress = sliceContentAddress
 		self._elementReader = UnsafeMutableBufferPointer(start: self._dataMemoryBaseAdrress, count: count)
 		self._shape = shape
 		self._capacity = count
 		self._sliceMarker = true
-		self._sliceParentTensor = parentTensor
 		self._sliceIndex = index
 		self._allocatedSize = count * MemoryLayout<Float>.stride
-		// setup root
-		if parentTensor.isSliceTensor {
-			// parent is a sliced tensor
-			self._sliceRootTensor = parentTensor.sliceRootTensor!
-		} else {
-			// parent is a normal tensor
-			self._sliceRootTensor = parentTensor
-		}
+		self._sliceRootTensor = rootTensor
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1630,47 +1610,34 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Slice tensor management
 	
-	
-	/// This function generate a `Tensor` object with attribute `sliceMarker` setting to `true`.
-	/// For cases where batch data samples stored in a single tensor and user wants to access one of the samples,
-	/// this function should be used.
+	/// Make a slice tensor from this object.
 	///
-	/// ## `batchIndex`
-	/// The argument `batchIndex` let the function knows which sample to fetch
-	/// and Serrano always assume the first dimension is the batch size.
-	/// For example:
-	/// ```
-	///		/// Suppose we have a tensor with dimensions [2, 3, 4]
-	///		let tensor = ...
-	///		/// This get the 1st batch of the raw tensor and the slice dimensions is [3, 4]
-	/// 	let slice = tensor.batchSlice(0)
-	/// ```
-	///
-	/// ## 'nil' result
-	/// The function may return `nil` result in two cases:
-	///		- The `batchIndex` is larger than the `batch size - 1`
-	///		- The tensor object itself does not have at least 2 dimensions
-	///
-	/// - Parameter batchIndex: the batch index
-	/// - Returns: `Tensor` object
-	public func batchSlice(_ batchIndex: Int) -> Tensor? {
-		guard self.shape.shapeArray.count >= 2 else {
-			SerranoLogging.errorLogging(message: "Tensor \(self.description) trying to generate a batchSlice at index \(batchIndex), but has only \(self.shape.shapeArray.count) dimensions",
-			                            file: "\(#file)", function: "\(#function)", line: "\(#line)")
-			return nil
+	/// - Parameter sliceIndex: Slice Inde
+	/// - Returns: A sliced tensor
+	public func slice(sliceIndex:[Int]) -> Tensor {
+		guard sliceIndex.count > 0 && sliceIndex.count <= self.shape.rank else {
+			SerranoLogging.errorLogging(message: "Argument sliceIndex \(sliceIndex) is invalid. Trying to slice from Tensor \(self.description)",
+				file: "\(#file)", function: "\(#function)", line: "\(#function)")
+			fatalError("Fatal from Serrano.  Check log for detail.")
 		}
 		
-		guard batchIndex < self.shape.shapeArray[0] else {
-			SerranoLogging.errorLogging(message: "Tensor \(self.description) trying to generate a batchSlice at index \(batchIndex), but the batch size is \(self.shape.shapeArray[0])",
-				file: "\(#file)", function: "\(#function)", line: "\(#line)")
-			return nil
+		for (indexSlice, indexTensor) in zip(sliceIndex, self.shape.shapeArray) {
+			guard indexSlice < indexTensor else { // <, not <=
+				SerranoLogging.errorLogging(message: "Argument sliceIndex \(sliceIndex) is invalid. Trying to slice from Tensor \(self.description)",
+					file: "\(#file)", function: "\(#function)", line: "\(#function)")
+				fatalError("Fatal from Serrano.  Check log for detail.")
+			}
 		}
 		
-		let count = self._shape.shapeArray.suffix(from: 1).reduce(1, *)
-		let address = self._dataMemoryBaseAdrress + count * batchIndex
-		let sliceShape = TensorShape(dataType: self._shape.dataType, shape: Array( self._shape.shapeArray.suffix(from: 1)))
+		var elementOffset = 0
+		for (dimIndex, index) in sliceIndex.enumerated() {
+			elementOffset += index * self.shape.shapeArray[dimIndex]
+		}
+		let address = self._dataMemoryBaseAdrress + elementOffset
+		let count = self._shape.shapeArray.suffix(from: sliceIndex.count).reduce(1, *)
+		let sliceShape = TensorShape(dataType: self._shape.dataType, shape: Array( self._shape.shapeArray.suffix(from: sliceIndex.count)))
 		let sliceTensor = Tensor(sliceTensorFrom: self, sliceContentAddress: address,
-		                         count: count, shape: sliceShape, index: batchIndex)
+								 count: count, shape: sliceShape, index: sliceIndex)
 		return sliceTensor
 	}
 	
@@ -1699,28 +1666,12 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 		guard self.containsSlice(slice) else {
 			return nil
 		}
-		return slice.count * slice.sliceIndex!
-	}
-	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// MARK: - Slice tensor methods
-	
-	/// The bytes offset from a slice tensor's root tensor.
-	///
-	/// - Note: Return `nil` if this tensor is not a slice tensor.
-	///
-	/// - Returns: the bytes offset
-	public func bytesOffsetFromRootTensor() -> Int? {
-		guard self.isSliceTensor else {
-			return nil
+		
+		var elementOffset = 0
+		for (dimIndex, index) in slice.sliceIndex!.enumerated() {
+			elementOffset += index * self.shape.shapeArray[dimIndex]
 		}
-		var offset = self.sliceParentTensor!.slicedTensorOffset(self)!
-		var tensor = self.sliceParentTensor!
-		while tensor != self.sliceRootTensor {
-			offset += tensor.sliceParentTensor!.slicedTensorOffset(tensor)!
-			tensor = tensor.sliceParentTensor!
-		}
-		return offset
+		return elementOffset * MemoryLayout<Float>.stride
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -770,42 +770,21 @@ class TensorTest: XCTestCase {
 	public func batchSlice(_ batchIndex: Int) -> Tensor?
 	*/
 	func testTensorBatchSlice() {
-		let numCase = 100
+		let numCase = 1
 		for i in 0..<numCase {
 			print("Test \(i+1)...")
 			
-			let tensor = randomTensor(dimensions: randomInt([1, 5]), dimensionSizeRange: [2, 5], dataType: .float)
-			print("Genereate tensor \(tensor.description)")
+//			let tensor = randomTensor(dimensions: randomInt([1, 5]), dimensionSizeRange: [2, 6], dataType: .int)
+			let tensor = randomTensor(fromShape: TensorShape(dataType: .int, shape: [2,3,4,5]))
+			print("Genereate root tensor: ")
+			print("\(tensor.nestedArrayFloat())")
 			
-			// tensor dimension
-			if tensor.shape.shapeArray.count < 2 {
-				let slice = tensor.batchSlice(0)
-				XCTAssertNil(slice)
-			} else {
-				for batchIndex in 0..<tensor.shape.shapeArray[0] {
-					let slice = tensor.batchSlice(batchIndex)
-					XCTAssertNotNil(slice)
-					print("Genereate slice \(slice!.description)")
-					
-					// count
-					XCTAssertEqual(slice!.count, tensor.shape.shapeArray.suffix(from: 1).reduce(1, *))
-					
-					// address
-					XCTAssertEqual(slice!.contentsAddress, tensor.contentsAddress + slice!.count * batchIndex)
-					XCTAssertEqual(slice!.sliceRootTensor!, tensor)
-					XCTAssertEqual(slice!.sliceIndex!, batchIndex)
-					
-					// value
-					let sliceReader = slice!.floatValueReader
-					let tensorReader = tensor.floatValueReader
-					for eleIndex in 0..<slice!.count {
-						XCTAssertEqual(sliceReader[eleIndex], tensorReader[eleIndex + slice!.count * batchIndex])
-					}
-				}
-			}
+			let slice = tensor.slice(sliceIndex: [0, 1])
+			print("slice: \(slice.shape)")
+			print("\(slice.nestedArrayFloat())")
 			
-			SerranoResourceManager.globalManager.releaseAllResources()
-			print("Finish Test \(i+1)\n\n")
+			print("Finish Test \(i+1)\n")
+			//TODO: Test verify
 		}
 	}
 }
