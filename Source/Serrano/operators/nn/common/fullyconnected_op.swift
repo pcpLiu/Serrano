@@ -151,8 +151,11 @@ public class FullyconnectedOperator: ComputableOperator {
 	///   - computationDelegate: computationDelegate
 	///   - weight: weight
 	///   - bias: bias
-	public init(inputDim: Int, numUnits: Int, operatorLabel: String, inputTensors: [Tensor]?, outputTensors: [Tensor]?,
-		computationDelegate: OperatorCalculationDelegate?, weight: Tensor?, bias: Tensor?) {
+	public init(inputDim: Int, numUnits: Int,
+				operatorLabel: String = "FullyconnectedOperator",
+				inputTensors: [Tensor]? = nil, outputTensors: [Tensor]? = nil,
+				computationDelegate: OperatorCalculationDelegate? = nil,
+				weight: Tensor? = nil, bias: Tensor? = nil) {
 		guard numUnits >= 1 else {
 			SerranoLogging.errorLogging(message: "Attribute numUnits of FullyconnectedOperator must be a positive integer. " +
 				                                 "Given \(numUnits).",
@@ -173,23 +176,6 @@ public class FullyconnectedOperator: ComputableOperator {
 		self.computationDelegate = computationDelegate
 		self.weight = weight
 		self.bias = bias
-	}
-
-	/// Convenience init
-	///
-	/// - Parameters:
-	///	  - inputDim: inputDim
-	///   - numUnits: numUnits
-	///   - inputTensors: inputTensors
-	///   - outputTensors: outputTensors
-	///   - computationDelegate: computationDelegate
-	public convenience init(inputDim: Int, numUnits: Int,
-	                        operatorLabel: String = "FullyconnectedOperator",
-	                        inputTensors: [Tensor]? = nil, outputTensors: [Tensor]? = nil,
-	                        computationDelegate: OperatorCalculationDelegate? = nil) {
-		self.init(inputDim: inputDim, numUnits: numUnits, operatorLabel: operatorLabel,
-		          inputTensors: inputTensors, outputTensors: outputTensors,
-		          computationDelegate: computationDelegate, weight: nil, bias: nil)
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
