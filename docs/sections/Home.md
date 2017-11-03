@@ -98,7 +98,9 @@ let convOp = ConvOperator2D(numFilters: 96,
        kernelSize: [11,11],
        stride: [4, 4],
        padMode: PaddingMode.Valid,
-       channelPosition: TensorChannelOrder.Last)
+       channelPosition: TensorChannelOrder.Last,
+       weight: randomTensor(fromShape: TensorShape(dataType: .float, shape: [96, 3, 11, 11])))
+       
 // Initialize a tensor object to store convOp's result.
 // In serrano, operator cannot allocate memeory for output tensors so that it can control memory allcoation precisely.
 let convOutputs = SerranoResourceManager.globalManager.allocateUnamangedTensors(convOp.outputShape(shapeArray: [inputTensor.shape])!)

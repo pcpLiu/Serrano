@@ -33,8 +33,7 @@ class SimpleCNN_imperative: XCTestCase {
 									stride: [4, 4],
 									padMode: PaddingMode.Valid,
 									channelPosition: TensorChannelOrder.Last,
-									weight: randomTensor(fromShape: TensorShape(dataType: .float, shape: [96, 3, 11, 11])),
-									inputShape: inputTensor.shape)
+									weight: randomTensor(fromShape: TensorShape(dataType: .float, shape: [96, 3, 11, 11])))
 		
 		// Initialize a tensor object to store convOp's result.
 		// In serrano, operator cannot allocate memeory for output tensors so that it can control memory allcoation precisely.
