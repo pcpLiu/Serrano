@@ -28,7 +28,6 @@ custom_categories:
     children:
       - 'What is Serrano'
       - 'Core concepts'
-      - 'VGG16 Example'
   - name: 'Extension'
     children:
       - 'Write your own operator'
