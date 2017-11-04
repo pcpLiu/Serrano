@@ -62,6 +62,9 @@ public class SerranoEngine {
     
     /// METAL library
     public var metalLibrary: MTLLibrary?
+	
+	/// User defined Metal libarary
+	public var userMetalLibarary: [MTLLibrary] = [MTLLibrary]()
     
 //    /// Backend compuation 
 //    public var backend: SerranoBackend = SerranoBackend.Serrano
@@ -215,11 +218,18 @@ public class SerranoEngine {
             return (kernel!, "Successfully loaded GPU kernel \(label).")
         }
         
-        let function = self.metalLibrary!.makeFunction(name: label)
+        var function = self.metalLibrary!.makeFunction(name: label)
         if function == nil {
-            return (nil, "Could not find the Metal kernel function: \(label).")
-        }
-        
+			for mtlLib in self.userMetalLibarary {
+				function =  mtlLib.makeFunction(name: label)
+				if function != nil {
+					break
+				}
+			}
+		}
+		if function == nil {
+			return (nil, "Cannot load kernel \(label)")
+		}
         
         do {
             try kernel = self.GPUDevice!.makeComputePipelineState(function: function!)

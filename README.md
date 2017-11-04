@@ -31,9 +31,9 @@ Aiming to offering popular and cutting edge techs in deep learning area on iOS d
 - Implemented an efficient NDArray class [Tensor](http://serrano-lib.org/docs/v0.1.0-alpha/api/Classes/Tensor.html) which supports:
   - CPU calculation with [BLAS](https://developer.apple.com/documentation/accelerate/blas)/[vecLib](https://developer.apple.com/documentation/accelerate/veclib)/[vDSP](https://developer.apple.com/documentation/accelerate/vdsp) for better performance 
   - GPU calculation on [no-copy MTLBuffer](https://developer.apple.com/documentation/metal/mtldevice/1433382-makebuffer) for memory saving
-- Including common [operators](http://serrano-lib.org/docs/v0.1.0-alpha/api/Classes.html) for constructing various computation graphs and it is easy to [implement custom operators]().
-- A python package [serrano-tools](https://github.com/pcpLiu/serrano-tools) is here to help convert your existing models (Under development)
-- No third-party library dependent. Compatible from iOS 10.
+- Including common [operators](http://serrano-lib.org/docs/latest/api/Classes.html) for constructing various computation graphs and it is easy to [implement custom operators](http://serrano-lib.org/docs/latest/guides/Extension/Write%20your%20own%20operator/)
+- [Graph API](http://serrano-lib.org/docs/latest/guides/Getting%20started/Core%20concepts/Graph) support forward and backward with auto differentiation 
+- No third-party library dependent. Compatible with iOS 10 and macOS.
 
 ## Install
 
@@ -51,9 +51,7 @@ Add `Serrano` into the `Target Dependencies` of your target.
 
 
 ## Docs
-The APIs are hosted at [http://serrano-lib.org](http://serrano-lib.org/docs/v0.1.0-alpha/api/).
-
-Currently, we are adding more guides.
+The guides and APIs are hosted at [http://serrano-lib.org](http://serrano-lib.org/docs/v0.1.0-alpha/api/).
 
 ## Questions && Issues
  :bangbang: Please __only open [bug]/[feature request] related issues__ in THIS repo and follow this [issue guide](). :bangbang: 
