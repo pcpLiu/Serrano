@@ -101,8 +101,12 @@ public class SerranoScalarSymbol: SerranoGraphSymbol, ScalarSymbol {
 			return false
 		}
 		
-		self._bindedData = data as! SupportedScalarDataType
-		
+		guard let bindedData = data as? SupportedScalarDataType else {
+			SerranoLogging.errorLogging(message: "Scalar symbol \(self.symbolLabel) was trying to bind to data \(data). But seems this data is not a scalar.",
+				file: "\(#file)", function: "\(#function)", line: "\(#line)")
+			fatalError("Faltal error raised by Serrano. Check log for details.")
+		}
+		self._bindedData = bindedData
 		return true
 	}
 }

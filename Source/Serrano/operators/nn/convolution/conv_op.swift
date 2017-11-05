@@ -358,8 +358,13 @@ public class ConvOperator2D: ComputableOperator {
 				fatalError("Faltal error raised by Serrano. Check log for details.")
 			}
 		
-			self.weight = dataSymbol.bindedData! as! Tensor
-			
+//			self.weight = dataSymbol.bindedData! as! Tensor
+			guard let weightTensor = dataSymbol.bindedData! as? Tensor else {
+				SerranoLogging.errorLogging(message: "Cov2D operator \(self.operatorLabel) was trying to bind to data symbol \(dataSymbol). But seems this symbol is not a tensor symbol as expected.",
+					file: "\(#file)", function: "\(#function)", line: "\(#line)")
+				fatalError("Faltal error raised by Serrano. Check log for details.")
+			}
+			self.weight = weightTensor
 		}
 	}
 	

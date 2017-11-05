@@ -395,9 +395,19 @@ public class FullyconnectedOperator: ComputableOperator {
 				fatalError("Faltal error raised by Serrano. Check log for details.")
 			}
 			if label == "weight" {
-				self.weight = dataSymbol.bindedData! as! Tensor
+				guard let weightTensor = dataSymbol.bindedData! as? Tensor else {
+					SerranoLogging.errorLogging(message: "Fully connected operator \(self.operatorLabel) is trying to bind to data symbol \(dataSymbol) for weight. But seems this symbol is not a tensor symbol as expected.",
+						file: "\(#file)", function: "\(#function)", line: "\(#line)")
+					fatalError("Faltal error raised by Serrano. Check log for details.")
+				}
+				self.weight = weightTensor
 			} else {
-				self.bias = dataSymbol.bindedData! as! Tensor
+				guard let biasTensor = dataSymbol.bindedData! as? Tensor else {
+					SerranoLogging.errorLogging(message: "Fully connected operator \(self.operatorLabel) is trying to bind to data symbol \(dataSymbol) for bias. But seems this symbol is not a tensor symbol as expected.",
+						file: "\(#file)", function: "\(#function)", line: "\(#line)")
+					fatalError("Faltal error raised by Serrano. Check log for details.")
+				}
+				self.bias = biasTensor
 			}
 		}
 	}

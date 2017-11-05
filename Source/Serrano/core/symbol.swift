@@ -229,7 +229,7 @@ extension ScalarSymbol {
 		if bindedData == nil {
 			return nil
 		} else {
-			return [self.bindedData as! DataSymbolSupportedDataType]
+			return [self.bindedData!]
 		}
 	}
 }
