@@ -32,7 +32,7 @@ Aiming to offering popular and cutting edge techs in deep learning area on iOS d
   - CPU calculation with [BLAS](https://developer.apple.com/documentation/accelerate/blas)/[vecLib](https://developer.apple.com/documentation/accelerate/veclib)/[vDSP](https://developer.apple.com/documentation/accelerate/vdsp) for better performance 
   - GPU calculation on [no-copy MTLBuffer](https://developer.apple.com/documentation/metal/mtldevice/1433382-makebuffer) for memory saving
 - Including common [operators](http://serrano-lib.org/docs/latest/api/Classes.html) for constructing various computation graphs and it is easy to [implement custom operators](http://serrano-lib.org/docs/latest/guides/Extension/Write%20your%20own%20operator/)
-- [Graph API](http://serrano-lib.org/docs/latest/guides/Getting%20started/Core%20concepts/Graph) support forward and backward with auto differentiation 
+- [Graph API](http://serrano-lib.org/docs/latest/api/Classes/ComputationGraph.html) support forward and backward with auto differentiation 
 - No third-party library dependent. Compatible with iOS 10 and macOS.
 
 ## Install
@@ -63,7 +63,7 @@ __For any general issue/discussion || framework support__, please go to [pcpLiu/
 Serrano was developed as an iOS framework. However, the framework could be added and used in Cocoa applications (macOS App) without effort. 
 
 ## Contribution
-Contribution are wanted! And please read the [Contributing Guide]() before making a PR.
+Contribution are wanted :loudspeaker:. And please read the [Contributing Guide](http://serrano-lib.org/docs/latest/guides/Contribution/Contribution/) before making a PR.
 
 ## License
 Serrano is liscensed under [MIT](https://github.com/pcpLiu/serrano/blob/master/LICENSE). Copyright (c) 2017, Zhonghao (Tim) Liu.

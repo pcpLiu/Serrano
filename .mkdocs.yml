@@ -13,7 +13,7 @@ site_author: pcpLiu
 site_description: Serrano Framework Guides
 copyright:  Copyright (c) 2017, Zhonghao (Tim) Liu
 
-site_dir: generated_docs
+site_dir: generated_docs/v0.1.2-alpha/guides
 
 markdown_extensions:
   - codehilite
@@ -36,7 +36,7 @@ markdown_extensions:
   - pymdownx.tilde
 
 extra:
-    version: v0.1.1-alpha
+    version: v0.1.2-alpha
 
 
 pages:
