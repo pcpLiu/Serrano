@@ -93,6 +93,6 @@ convOp.outputTensors = convOutputs
 convOp.compute(.GPU)
 ```
 
-Complete code can be found [Serrano/Examples/Imperative/SimpleCNN_imperative.swift]()
+Complete code can be found [Serrano/Examples/Imperative/SimpleCNN_imperative.swift](https://github.com/pcpLiu/Serrano/blob/master/Examples/Graph/SimpleCNN.swift)
 
 <hr>
