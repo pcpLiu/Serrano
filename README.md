@@ -51,7 +51,7 @@ Add `Serrano` into the `Target Dependencies` of your target.
 
 
 ## Docs
-The guides and APIs are hosted at [http://serrano-lib.org](http://serrano-lib.org/docs/v0.1.0-alpha/api/).
+The guides and APIs are hosted at [http://serrano-lib.org](http://serrano-lib.org).
 
 ## Questions && Issues
  :bangbang: Please __only open [bug]/[feature request] related issues__ in THIS repo and follow this [issue guide](). :bangbang: 
