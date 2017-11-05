@@ -1,38 +1,21 @@
-<hr>
-<hr>
+<!--- Provide a general summary of your changes in the Title here -->
 
-## DO NOT Submit Non-bug Issue or Framework Question Here
-Please go to [pcpLiu/SerranoExplore](https://github.com/pcpLiu/SerranoExplore) opening an issue for general support. This repo only accepts bug-related issues.
+## Description
+<!--- Describe your changes in detail -->
 
-<hr>
-<hr>
-<!-- 
-Fill the form below. Replace content in `()` with your information. 
-All fields are required excepted optional fields.
--->
+## Related Issue
+<!--- This project only accepts pull requests related to open issues -->
+<!--- If suggesting a new feature or change, please discuss it in an issue first -->
+<!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
+<!--- Please link to the issue here: -->
+<!--  Docs samll improvement, like typo and formatting. You don't need to fill this section -->
 
-#### Description
-(Give a overall description of the situation you have met)
-
-
-#### Environment Information
-- Serrano version: (XXXXX)
-- Xcode Version: (XXXXX)
-- Platform: (macOS or iOS)
-- Platform System version: (iOSxxxx or macOSxxx)
+## How Has This Been Tested?
+<!--- Please describe in detail how you tested your changes. -->
+<!--- Include the tests you ran to -->
+<!--- see how your change affects other areas of the code, etc. -->
 
 
-#### Reproduce Steps
-(A __gist__ or __github repo__ is prefered. Should be detailed enough to reproduce.)
-
-
-#### Expecting behavior
-(Describe what result or behavior should be expecting)
-
-
-#### Actual behavior
-(Describe actual result or behavior)
-
-
-#### Possible Implementation (Optional)
-(Optional implementation to fix this bug)
+## Changes
+- Change one....
+- Change two....
