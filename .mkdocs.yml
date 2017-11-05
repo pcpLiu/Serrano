@@ -15,6 +15,10 @@ copyright:  Copyright (c) 2017, Zhonghao (Tim) Liu
 
 site_dir: generated_docs/v0.1.2-alpha/guides
 
+google_analytics:
+  - 'UA-54280547-7'
+  - 'auto'
+
 markdown_extensions:
   - codehilite
   - admonition
