@@ -1,5 +1,6 @@
 ignore:
-  - "Source/library" # C library
-  - "Tests"          # Test files
+  - "Source/library/**/*" # C library
+  - "Examples/**/*" # examples
+  - "Tests/**/*"          # Test files
 
 max_report_age: off

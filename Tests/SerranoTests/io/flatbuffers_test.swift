@@ -1,14 +1,15 @@
 //
-//  TestLibrary.swift
+//  flatbuffers_test.swift
 //  serrano
 //
-//  Created by ZHONGHAO LIU on 11/2/17.
+//  Created by ZHONGHAO LIU on 11/5/17.
 //  Copyright © 2017 ZHONGHAO LIU. All rights reserved.
 //
 
 import XCTest
 @testable import Serrano
-class TestLibrary: XCTestCase {
+
+class flatbuffers_test: XCTestCase {
     
     override func setUp() {
         super.setUp()
@@ -20,7 +21,14 @@ class TestLibrary: XCTestCase {
         super.tearDown()
     }
     
-	func testLibImport() {
+	func testLoad() {
+		let file = Bundle.main.path(forResource: "test_TensorValue_flatbuffer", ofType: "dat")
+		print(file)
+		let info = FlatbufferIO.loadSavedParams(file!);
+		for (uid, tensor) in info {
+			print(uid)
+			print(tensor.description)
+		}
 	}
     
 }

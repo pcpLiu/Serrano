@@ -1,11 +1,11 @@
 ![logo](https://github.com/pcpLiu/Serrano/blob/master/logo.png)
 
 <p align="center">
-	<a href="https://travis-ci.com/pcpLiu/serrano/">
+	<a href="https://travis-ci.org/pcpLiu/Serrano/">
         <img src="https://travis-ci.org/pcpLiu/Serrano.svg?branch=master" alt="travisCI-building">
   </a>
-  <a href="https://codecov.io/gh/pcpLiu/serrano">
-        <img src="https://codecov.io/gh/pcpLiu/serrano/branch/master/graph/badge.svg?token=4YATtfzXIv" alt="coverage">
+  <a href="https://codecov.io/gh/pcpLiu/Serrano">
+        <img src="https://codecov.io/gh/pcpLiu/Serrano/branch/master/graph/badge.svg" alt="coverage">
   </a>
   <a href="https://github.com/pcpLiu/serrano">
         <img src="https://img.shields.io/badge/iOS-10.0%2B-blue.svg" alt="iOS">
