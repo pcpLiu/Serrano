@@ -2,6 +2,7 @@
 Source/library/**/* linguist-vendored
 
 # flatbuffer reader
-Flatbuffers/**/*
+Flatbuffers/**/* linguist-vendored
 
-docs/**/*
+# docs
+docs/**/* linguist-vendored
