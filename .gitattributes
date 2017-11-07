@@ -1,2 +1,7 @@
 # C libarary
-Source/library/* linguist-vendored
+Source/library/**/* linguist-vendored
+
+# flatbuffer reader
+Flatbuffers/**/*
+
+docs/**/*
