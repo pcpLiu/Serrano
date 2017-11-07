@@ -6,8 +6,8 @@ This code shows how to construct a VGG16 network using graph's low-level API.
 
 [vgg16](http://book.paddlepaddle.org/03.image_classification/image/vgg16.png)
 */
-func configureVGG16() -> ComputationGraph {
-	let g = ComputationGraph()
+func configureVGG16() -> ForwardGraph {
+	let g = ForwardGraph()
 	
 	// input [244, 244, 3]
 	let shape = TensorShape(dataType: .float, shape: [244, 244, 3])
@@ -157,9 +157,8 @@ class Example_VGG16: XCTestCase {
 		
 		let _ = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU)
 		let vgg16 = configureVGG16()
-		vgg16.allocateAllTensors()
 		vgg16.forwardPrepare()
-		
+
 		let start = CFAbsoluteTimeGetCurrent()
 //		vgg16.forward(mode: .CPU)
 		vgg16.forward(mode: .GPU)

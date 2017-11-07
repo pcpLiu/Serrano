@@ -302,58 +302,36 @@ public class BinaryOperator: ComputableOperator {
     /// - Parameter tensors: the operation tensors
     internal func gpu()  {
         // prepare resources
-        let resourcePrepareGroup = DispatchGroup()
         let engine = SerranoEngine.configuredEngine
         var kernel: MTLComputePipelineState?
         var commandBuffer: MTLCommandBuffer?
-        var dataBuffers: [MTLBufferResource] = [MTLBufferResource]()
-        var countBuffer: MTLBuffer?
-        
-        // kernel
-        resourcePrepareGroup.enter()
-        DispatchQueue.global(qos: .userInitiated).async {
-            var info = ""
-            (kernel, info) = engine.loadGPUKernel(kernelLabel: self.metalKernelFuncLabel)
-            guard kernel != nil else {
-                fatalError("[Serrano] Failed to load kernel \(self.metalKernelFuncLabel). Info: \(info)")
-            }
-            resourcePrepareGroup.leave()
-        }
-        
-        // command buffer
-        resourcePrepareGroup.enter()
-        DispatchQueue.global(qos: .userInitiated).async {
-            commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
-            guard commandBuffer != nil else {
-                fatalError("[Serrano] Failed to make new command buffer.")
-            }
-            resourcePrepareGroup.leave()
-        }
+		let inputABufferResource = self.inputTensors![0].gpuBufferResource()
+		let inputBBufferResource = self.inputTensors![1].gpuBufferResource()
+		let resultBufferResource = self.outputTensors![0].gpuBufferResource()
 		
-		//// Prepare MTLBuffers
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			dataBuffers = SerranoResourceManager.globalManager.allocateMTLBufferResources([self.inputTensors![0], self.inputTensors![1], self.outputTensors![0]])
-
-			resourcePrepareGroup.leave()
+        // kernel
+		var info = ""
+		(kernel, info) = engine.loadGPUKernel(kernelLabel: self.metalKernelFuncLabel)
+		guard kernel != nil else {
+			fatalError("[Serrano] Failed to load kernel \(self.metalKernelFuncLabel). Info: \(info)")
 		}
-			
-        resourcePrepareGroup.wait()
-        
+		
+        // command buffer
+		commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
+		guard commandBuffer != nil else {
+			fatalError("[Serrano] Failed to make new command buffer.")
+		}
 		
         // dimensionBuffer
-        var count = UInt32(self.inputTensors![0].count)
-        countBuffer = engine.GPUDevice?.makeBuffer(bytes: &count, length: MemoryLayout<UInt32>.size)
-        guard countBuffer != nil else { fatalError("[Serrano] Failed to careate MTLBuffer.") }
-        SerranoLogging.stdLogging(message: "Allocated a Metal buffer [\(countBuffer!.length) bytes] requested for count info \(count) by operator \(self.operatorLabel)", file: "\(#file)", function: "\(#function)", line: "\(#line)",  loggingLevel: .LowLevel)
-        
+        var count = MetalUInt(self.inputTensors![0].count)
+		
         //// Prepare encoders.
         let encoder = commandBuffer!.makeComputeCommandEncoder()
         encoder.setComputePipelineState(kernel!)
-        encoder.setBuffer(dataBuffers[0].buffer, offset: dataBuffers[0].offset, at: 0)
-        encoder.setBuffer(dataBuffers[1].buffer, offset: dataBuffers[1].offset, at: 1)
-        encoder.setBuffer(dataBuffers[2].buffer, offset: dataBuffers[2].offset, at: 2)
-        encoder.setBuffer(countBuffer, offset: 0, at: 3)
+        encoder.setBuffer(inputABufferResource.buffer, offset: inputABufferResource.offset, at: 0)
+        encoder.setBuffer(inputBBufferResource.buffer, offset: inputBBufferResource.offset, at: 1)
+        encoder.setBuffer(resultBufferResource.buffer, offset: resultBufferResource.offset, at: 2)
+        encoder.setBytes(&count, length: MemoryLayout<MetalUInt>.stride, at: 3)
         
         // dispatch
         let threadsPerThreadgroup = MTLSizeMake(kernel!.threadExecutionWidth,
@@ -363,7 +341,6 @@ public class BinaryOperator: ComputableOperator {
                                               1,
                                               1)
         encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-        SerranoLogging.stdLogging(message: "Dispatch group configured with threadgroupsPerGrid: \(threadgroupsPerGrid), threadsPerThreadgroup: \(threadsPerThreadgroup) requested by operator \(self.operatorLabel)", file: "\(#file)", function: "\(#function)", line: "\(#line)",  loggingLevel: .LowLevel)
         
         encoder.endEncoding()
         

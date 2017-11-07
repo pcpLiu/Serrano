@@ -418,8 +418,8 @@ public class FullyconnectedOperator: ComputableOperator {
 	/// - Returns:  Array  of GraphSymbol
 	public func paramSymbols() -> [GraphSymbol] {
 		// These labels are important for bindParamSymbols(:)
-		let weight = SerranoTensorSymbol("weight", dataSource: .User, shape: TensorShape(dataType: .float, shape: [self.inputDim, self.numUnits]))
-		let bias = SerranoTensorSymbol("bias", dataSource: .User, shape: TensorShape(dataType: .float, shape: [self.numUnits]))
+		let weight = SerranoTensorSymbol("weight", dataSource: .Parameter, shape: TensorShape(dataType: .float, shape: [self.inputDim, self.numUnits]))
+		let bias = SerranoTensorSymbol("bias", dataSource: .Parameter, shape: TensorShape(dataType: .float, shape: [self.numUnits]))
 
 		return [weight, bias]
 	}
@@ -458,7 +458,9 @@ public class FullyconnectedOperator: ComputableOperator {
 		}
 	}
 	
+	
 	/// We use op
+	/// TODO: This needs more optimization. clean code
 	internal func gpu() {
 		let workGroup = DispatchGroup()
 		let weightTensor = self.weight!

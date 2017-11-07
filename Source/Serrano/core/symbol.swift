@@ -23,16 +23,18 @@ public enum SymbolType {
 	}
 }
 
-
-
-
-/// The Data source of a data symbol (Tensor or scalar symbol)
+/// The Data source of a data symbol
 public enum SymbolDataSource {
-	/// Symbol explicitly created by user and needs feeding from user
+	/// Symbol explicitly created by user and needs feeding from user, like Input of graph.
 	case User
 	
-	/// Symbol gets data from a calculation result, so no need sfeeding from user
+	/// Symbol gets data from a calculation result, so no need sfeeding from user.
+	/// For example, output of operator symbols inside a graph.
 	case Calculation
+	
+	/// Parameter data source.
+	/// This measn a datay symbol's binded data is parameter.
+	case Parameter
 	
 	/// Symbol has a default value but also can receive data from user,
 	/// like some parameters of operators.

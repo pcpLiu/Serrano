@@ -10,7 +10,15 @@ import Foundation
 import Metal
 import Accelerate
 
+public class RandomValueGenerator {
+	public static func randomInt(min: Int = 0, max: Int = 10) -> Int {
+		return Int(arc4random_uniform(UInt32(max - min))) + min
+	}
 
+	public static func randomFloat(min: Float = 1.0, max: Float = 10.0) -> Float {
+		return Float(drand48()) * max - min
+	}
+}
 
 /**
  Get `CBLAS_TRANSPOSE` enum value from Bool marker

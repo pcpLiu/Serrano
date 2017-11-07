@@ -315,7 +315,7 @@ class MatriMultOpTest: XCTestCase {
 	internal func gpu()
 	*/
 	func testCompute() {
-		let numCase = 20
+		let numCase = 10
 		let op = MatrixMultOperator()
 		
 		// gpu initial
@@ -338,7 +338,7 @@ class MatriMultOpTest: XCTestCase {
 
 			// generate tensors
 			var dimRange: [Int] = [200, 400]
-			if i >= 18 {
+			if i >= 8 {
 				dimRange = [1000, 1200]
 			}
 			

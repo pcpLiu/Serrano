@@ -254,84 +254,45 @@ public class TransposeOperator: ComputableOperator {
 	
 	internal func gpu() {
 		// prepare resources
-		let resourcePrepareGroup = DispatchGroup()
 		let engine = SerranoEngine.configuredEngine
-		var kernel: MTLComputePipelineState?
-		var commandBuffer: MTLCommandBuffer?
-		var inputBuffers: [MTLBufferResource] =  [MTLBufferResource]()
-		var resultBuffers: [MTLBufferResource] =  [MTLBufferResource]()
-		var matrixInfoBuffers: [MTLBuffer] = [MTLBuffer]()
 		
 		// kernel
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			var info = ""
-			(kernel, info) = engine.loadGPUKernel(kernelLabel: self.metalKernelFuncLabel)
-			guard kernel != nil else {
-				fatalError("[Serrano] Failed to load kernel \(self.metalKernelFuncLabel). Info: \(info)")
-			}
-			resourcePrepareGroup.leave()
+		let (kernel, info) = engine.loadGPUKernel(kernelLabel: self.metalKernelFuncLabel)
+		guard kernel != nil else {
+			fatalError("[Serrano] Failed to load kernel \(self.metalKernelFuncLabel). Info: \(info)")
 		}
 		
 		// command buffer
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
-			guard commandBuffer != nil else {
-				fatalError("[Serrano] Failed to make new command buffer.")
-			}
-			resourcePrepareGroup.leave()
+		let commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
+		guard commandBuffer != nil else {
+			fatalError("[Serrano] Failed to make new command buffer.")
 		}
-		
-		// prepare input tensor MTLBuffers
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			inputBuffers = SerranoResourceManager.globalManager.allocateMTLBufferResources(self.inputTensors!)
-			resultBuffers = SerranoResourceManager.globalManager.allocateMTLBufferResources(self.outputTensors!)
-			resourcePrepareGroup.leave()
-		}
-		
-		// // matrix info buffers
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			for outTensor in self.outputTensors! {
-				var matrixInfo = TransposeMatrixInfo(M: MetalUInt(outTensor.shape.shapeArray[0]),
-				                                     N: MetalUInt(outTensor.shape.shapeArray[1]),
-				                                     stride: MetalUShort(MemoryLayout<Float>.stride))
-				let matrixInfoBuffer = engine.GPUDevice?.makeBuffer(bytes: &matrixInfo,
-				                                                    length: MemoryLayout<TransposeMatrixInfo>.size)
-				guard matrixInfoBuffer != nil else {
-					SerranoLogging.errorLogging(message: "Failed to create matrix Info Buffer",
-					                            file: "\(#file)", function: "\(#function)", line: "\(#line)")
-					fatalError()
-				}
-				SerranoLogging.stdLogging(message: "Allocated a Metal buffer [\(matrixInfoBuffer!.length) bytes] requested for count matrixInfo \(matrixInfo) by operator \(self.operatorLabel)",
-					file: "\(#file)", function: "\(#function)", line: "\(#line)",  loggingLevel: .LowLevel)
-				matrixInfoBuffers.append(matrixInfoBuffer!)
-			}
-			resourcePrepareGroup.leave()
-		}
-		
-		resourcePrepareGroup.wait()
 		
 		// encoder for each computation
-		for bufferIndex in 0..<inputBuffers.count {
+		for (input, output) in zip(self.inputTensors!, self.outputTensors!) {
+			let inputBufferResource = input.gpuBufferResource()
+			let outputBufferResource = output.gpuBufferResource()
+			
+			// matrix info
+			var matrixInfo = TransposeMatrixInfo(M: MetalUInt(output.shape.shapeArray[0]),
+												 N: MetalUInt(output.shape.shapeArray[1]),
+												 stride: MetalUShort(MemoryLayout<Float>.stride))
+			
 			// encoder
 			let encoder = commandBuffer!.makeComputeCommandEncoder()
 			encoder.setComputePipelineState(kernel!)
-			encoder.setBuffer(inputBuffers[bufferIndex].buffer, offset: inputBuffers[bufferIndex].offset, at: 0)
-			encoder.setBuffer(resultBuffers[bufferIndex].buffer, offset: resultBuffers[bufferIndex].offset, at: 1)
-			encoder.setBuffer(matrixInfoBuffers[bufferIndex], offset: 0, at: 2)
+			encoder.setBuffer(inputBufferResource.buffer, offset: inputBufferResource.offset, at: 0)
+			encoder.setBuffer(outputBufferResource.buffer, offset: outputBufferResource.offset, at: 1)
+			encoder.setBytes(&matrixInfo, length: MemoryLayout<TransposeMatrixInfo>.stride, at: 2)
 			
 			// dispatch
 			let threadsPerThreadgroup = MTLSizeMake(kernel!.threadExecutionWidth,
 			                                        kernel!.maxTotalThreadsPerThreadgroup / kernel!.threadExecutionWidth,
 			                                        1)
-			let threadgroupsPerGrid = MTLSizeMake((self.outputTensors![bufferIndex].shape.shapeArray[0] + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
-			                                      (self.outputTensors![bufferIndex].shape.shapeArray[1] + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
+			let threadgroupsPerGrid = MTLSizeMake((output.shape.shapeArray[0] + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
+			                                      (output.shape.shapeArray[1] + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
 			                                      1)
 			encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-			SerranoLogging.stdLogging(message: "Dispatch group configured with threadgroupsPerGrid: \(threadgroupsPerGrid), threadsPerThreadgroup: \(threadsPerThreadgroup) requested by operator \(self.operatorLabel)", file: "\(#file)", function: "\(#function)", line: "\(#line)",  loggingLevel: .LowLevel)
 			encoder.endEncoding()
 		}
 		

@@ -383,10 +383,10 @@ public class MatrixMultOperator: ComputableOperator {
 	/// This method choose proper kernel or MPS to do calculation
 	internal func gpu() {
 		// Use MPS if possible
-		if MetalHardwareChecker.supportMPS() {
-			self.gpu_kernel_MPS()
-			return
-		}
+//		if MetalHardwareChecker.supportMPS() {
+//			self.gpu_kernel_MPS()
+//			return
+//		}
 		// choose kernel
 		if self.transposeA && !self.transposeB {
 			self.gpu_kernel_submatrix()
@@ -455,7 +455,7 @@ public class MatrixMultOperator: ComputableOperator {
 			transOp.compute(.GPU)
 			inputBTransposed = transposeB
 		}
-		let inputBBufferTransposed = SerranoResourceManager.globalManager.allocateMTLBufferResource(inputBTransposed)
+		let inputBBufferTransposed = inputBTransposed.gpuBufferResource()
 		
 		// do calcualtion
 		let workGroup = DispatchGroup()
@@ -468,12 +468,10 @@ public class MatrixMultOperator: ComputableOperator {
 					transOp.disableInputOutputCheck = true
 					transOp.compute(.GPU)
 					
-					let buffers = SerranoResourceManager.globalManager.allocateMTLBufferResources([transA, output])
-					
 					let (M,N,K) = self.MNKFetch(tensorA: inputA, tensorB: self.inputTensors!.last!) // here use raw inputA, inputB to get M,N,K
 					var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride))
-					self.gpu_single(inputABuffer: buffers[0], inputBBufferTransposed: inputBBufferTransposed,
-					                outputCBuffer: buffers[1], dimInfo: &info, kernel: kernel!)
+					self.gpu_single(inputABuffer: transA.gpuBufferResource(), inputBBufferTransposed: inputBBufferTransposed,
+					                outputCBuffer: output.gpuBufferResource(), dimInfo: &info, kernel: kernel!)
 					workGroup.leave()
 				}
 			}
@@ -481,12 +479,10 @@ public class MatrixMultOperator: ComputableOperator {
 			for (inputA, output) in zip(self.inputTensors![0..<self.inputTensors!.count-1], self.outputTensors!) {
 				workGroup.enter()
 				DispatchQueue.global(qos: .userInitiated).async {
-					let buffers = SerranoResourceManager.globalManager.allocateMTLBufferResources([inputA, output])
-					
 					let (M,N,K) = self.MNKFetch(tensorA: inputA, tensorB: self.inputTensors!.last!) // here use raw inputB to get M,N,K
 					var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride))
-					self.gpu_single(inputABuffer: buffers[0], inputBBufferTransposed: inputBBufferTransposed,
-					                outputCBuffer: buffers[1], dimInfo: &info, kernel: kernel!)
+					self.gpu_single(inputABuffer: inputA.gpuBufferResource(), inputBBufferTransposed: inputBBufferTransposed,
+					                outputCBuffer: output.gpuBufferResource(), dimInfo: &info, kernel: kernel!)
 					workGroup.leave()
 				}
 			}
@@ -548,7 +544,7 @@ public class MatrixMultOperator: ComputableOperator {
 			fatalError("[Serrano] Failed to load kernel MatrixMult_Single. Info: \(info)")
 		}
 		
-		let inputBBuffer = SerranoResourceManager.globalManager.allocateMTLBufferResource(self.inputTensors!.last!)
+		let inputBBuffer = self.inputTensors!.last!.gpuBufferResource()
 		
 		// do calcualtion
 		let workGroup = DispatchGroup()
@@ -556,11 +552,10 @@ public class MatrixMultOperator: ComputableOperator {
 		for (inputA, output) in zip(self.inputTensors![0..<self.inputTensors!.count-1], self.outputTensors!) {
 			workGroup.enter()
 			DispatchQueue.global(qos: .userInitiated).async {
-				let buffers = SerranoResourceManager.globalManager.allocateMTLBufferResources([inputA, output])
-
 				let (M,N,K) = self.MNKFetch(tensorA: inputA, tensorB: self.inputTensors!.last!) // here use raw inputA and inputB to get M,N,K
 				var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride))
-				self.gpu_submatrix(inputATransposeBuffer: buffers[0], inputBBuffer: inputBBuffer, outputCBuffer: buffers[1],
+				self.gpu_submatrix(inputATransposeBuffer: inputA.gpuBufferResource(), inputBBuffer: inputBBuffer,
+								   outputCBuffer: output.gpuBufferResource(),
 				                   dimInfo: &info, kernel: kernel!)
 				workGroup.leave()
 			}

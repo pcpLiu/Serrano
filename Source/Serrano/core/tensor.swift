@@ -492,6 +492,10 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	/// The index array of this slice object in raw tensor.
 	/// `nil` if not a sliced tensor
 	internal var _sliceIndex: [Int]?
+	
+	/// `MTLBuffer` binded to this tensor.
+	/// - Note: If the tensor is sliced, this is `nil`.
+ 	internal var _mtlbuffer: MTLBuffer?
     
     /// Count of data elements tored
     public var count: Int {
@@ -782,15 +786,13 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	
 	/// Designated init. 
 	///
-	/// - Note: Usually, user should not call this init directly.
-	///
 	/// - Parameters:
 	///   - shape: shape
 	///   - allocateSize: allocateSize
 	///   - capacity: capacity
 	///   - dataMemoryBaseAddres: dataMemoryBaseAddres
 	///   - elementReader: elementReader
-	public init(shape: TensorShape, allocateSize: Int, capacity: Int,
+	internal init(shape: TensorShape, allocateSize: Int, capacity: Int,
 	            dataMemoryBaseAddres: UnsafeMutablePointer<Float>, elementReader:UnsafeMutableBufferPointer<Float>) {
 		self._shape = shape
 		self._allocatedSize = allocateSize
@@ -880,6 +882,24 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 			
 		}
     }
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// MARK: - Make tensors randomly
+	
+	/// Generate a random tensor.
+	///
+	/// - Parameters:
+	///   - shape:
+	///   - min:
+	///   - max:
+	/// - Returns:
+	public static func randomTensor(_ shape: TensorShape, min: Float = 0.0, max: Float = 1.0) -> Tensor {
+		let tensor = Tensor(repeatingValue: 0.0, tensorShape: shape)
+		for i in 0..<tensor.count {
+			tensor.floatValueReader[i] = RandomValueGenerator.randomFloat(min: min, max: max)
+		}
+		return tensor
+	}
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - Util methods
@@ -935,7 +955,7 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	///
 	/// - Parameter tensor: cp from tensor
 	public func copyValues(_ tensor: Tensor) {
-		let copyOp = CopyOperator(inputTensors: [self], outputTensors: [tensor])
+		let copyOp = CopyOperator(inputTensors: [tensor], outputTensors: [self])
 		copyOp.compute()
 	}
     
@@ -1011,6 +1031,35 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
     public static func  ==(lhs: Tensor, rhs: Tensor) -> Bool {
         return lhs._dataMemoryBaseAdrress == rhs._dataMemoryBaseAdrress
     }
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// MARK: - Metal Buffer Binding APIs
+	
+	
+	/// Get a `MTLBuffer` associated with this tensor object.
+	///
+	/// - Returns:
+	public func gpuBufferResource() -> MTLBufferResource {
+		// check gpu available
+		guard SerranoEngine.configuredEngine.hasAvailableGPU() else {
+			SerranoLogging.errorLogging(message: "No available GPU device.",
+										file: "\(#file)", function: "\(#function)", line: "\(#line)")
+			fatalError("Fatal error raised by Serrano. Check log for details.")
+		}
+		
+		if self.isSliceTensor {
+			return MTLBufferResource(buffer: self.sliceRootTensor!.gpuBufferResource().buffer,
+									 offset: self.sliceRootTensor!.slicedTensorOffset(self)!)
+		} else {
+			if self._mtlbuffer == nil {
+				self._mtlbuffer = SerranoEngine.configuredEngine.GPUDevice!.makeBuffer(bytesNoCopy: self._dataMemoryBaseAdrress,
+																					   length: self.allocatedBytes,
+																					   options: MTLResourceOptions.storageModeShared)
+			}
+			return MTLBufferResource(buffer: self._mtlbuffer!, offset: 0)
+		}
+	}
+	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Tensor manipulation

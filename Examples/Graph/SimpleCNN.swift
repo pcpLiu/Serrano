@@ -9,8 +9,8 @@
 import XCTest
 @testable import Serrano
 
-func configureSimpleCNN() -> ComputationGraph {
-	let g = ComputationGraph()
+func configureSimpleCNN() -> ForwardGraph {
+	let g = ForwardGraph()
 	let shape = TensorShape(dataType: .float, shape: [244, 244, 3]) // shape of the tensor
 	let input = g.tensor(shape: shape) // add an input tensor
 	
@@ -52,7 +52,6 @@ class SimpleCNN: XCTestCase {
 		let _ = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU)
 		
 		let g = configureSimpleCNN()
-		g.allocateAllTensors()
 		g.forwardPrepare()
 		
 		// calculate

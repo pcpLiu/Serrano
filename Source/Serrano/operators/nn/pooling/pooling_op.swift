@@ -334,102 +334,47 @@ public class Pooling2DOperator: ComputableOperator {
 	/// GPU calculation
 	internal func gpu() {
 		// prepare resources
-		let resourcePrepareGroup = DispatchGroup()
 		let engine = SerranoEngine.configuredEngine
-		var kernel: MTLComputePipelineState?
-		var commandBuffers: [MTLCommandBuffer] = [MTLCommandBuffer]()
-		var inputBuffers: [MTLBufferResource] =  [MTLBufferResource]()
-		var outputBuffers: [MTLBufferResource] = [MTLBufferResource]()
-		var infoBuffers: [MTLBuffer] = [MTLBuffer]()
-		
 		// kernel
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			var info = ""
-			(kernel, info) = engine.loadGPUKernel(kernelLabel: self.metalKernelFuncLabel)
-			guard kernel != nil else {
-				fatalError("[Serrano] Failed to load kernel \(self.metalKernelFuncLabel). Info: \(info)")
-			}
-			resourcePrepareGroup.leave()
+		let (kernel, info) = engine.loadGPUKernel(kernelLabel: self.metalKernelFuncLabel)
+		guard kernel != nil else {
+			fatalError("[Serrano] Failed to load kernel \(self.metalKernelFuncLabel). Info: \(info)")
 		}
 		
 		// command buffer
-		for _ in 0..<self.inputTensors!.count {
-			resourcePrepareGroup.enter()
-			DispatchQueue.global(qos: .userInitiated).async {
-				let commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
-				guard commandBuffer != nil else {
-					fatalError("[Serrano] Failed to make new command buffer.")
-				}
-				commandBuffers.append(commandBuffer!)
-				resourcePrepareGroup.leave()
-			}
+		let commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
+		guard commandBuffer != nil else {
+			fatalError("[Serrano] Failed to make new command buffer.")
 		}
-		
-		// input buffers
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			inputBuffers = SerranoResourceManager.globalManager.allocateMTLBufferResources(self.inputTensors!)
-			resourcePrepareGroup.leave()
-		}
-		
-		// output buffers
-		resourcePrepareGroup.enter()
-		DispatchQueue.global(qos: .userInitiated).async {
-			outputBuffers = SerranoResourceManager.globalManager.allocateMTLBufferResources(self.outputTensors!)
-			resourcePrepareGroup.leave()
-		}
-		
-		// info buffer
-		for (input, output) in zip(self.inputTensors!, self.outputTensors!) {
-			resourcePrepareGroup.enter()
-			DispatchQueue.global(qos: .userInitiated).async {
-				var info = Pool2DInfo.makePool2DInfo(op: self, inputSize: input.shape.shapeArray, outputSize: output.shape.shapeArray)
-				let buffer = SerranoEngine.configuredEngine.GPUDevice!.makeBuffer(bytes: &info,
-				                                                                  length: MemoryLayout<Pool2DInfo>.stride,
-				                                                                  options: MTLResourceOptions.storageModeShared)
-				infoBuffers.append(buffer)
-				resourcePrepareGroup.leave()
-			}
-		}
-		
-		resourcePrepareGroup.wait()
 		
 		// encoder
-		for index in 0..<self.outputTensors!.count {
-			resourcePrepareGroup.enter()
-			DispatchQueue.global(qos: .userInitiated).async {
-				let commandBuffer = commandBuffers[index]
-				let encoder = commandBuffer.makeComputeCommandEncoder()
-				encoder.setComputePipelineState(kernel!)
-				encoder.setBuffer(inputBuffers[index].buffer, offset: inputBuffers[index].offset, at: 0)
-				encoder.setBuffer(outputBuffers[index].buffer, offset: outputBuffers[index].offset, at: 1)
-				encoder.setBuffer(infoBuffers[0], offset: 0, at: 2)
-				
-				/// Calculate grid
-				let (channel, outHeight, outWidth) = parseImgChannelShapeInfo(self.channelPosition,
-				                                                              shapeArray: self.outputTensors![index].shape.shapeArray)
-				let threadsPerThreadgroup = MTLSizeMake(16,
-				                                        Int(Float(kernel!.threadExecutionWidth / 16).rounded(FloatingPointRoundingRule.up)), // incase threadExecutionWidth is very samll
-				                                        1)
-				let threadgroupsPerGrid = MTLSizeMake((outWidth + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
-				                                      (outHeight + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
-				                                      channel)
-				encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-				SerranoLogging.stdLogging(message: "Dispatch group configured with threadgroupsPerGrid: \(threadgroupsPerGrid), threadsPerThreadgroup: \(threadsPerThreadgroup) requested by operator \(self.operatorLabel)",
-					file: "\(#file)", function: "\(#function)", line: "\(#line)",  loggingLevel: .LowLevel)
-				
-				encoder.endEncoding()
-				
-				// commit command buffer
-				commandBuffer.commit()
-				commandBuffer.waitUntilCompleted()
-				
-				resourcePrepareGroup.leave()
-			}
+		for (input, output) in zip(self.inputTensors!, self.outputTensors!) {
+			let inputBufferResource = input.gpuBufferResource()
+			let outputBufferResource = output.gpuBufferResource()
+			var info = Pool2DInfo.makePool2DInfo(op: self, inputSize: input.shape.shapeArray, outputSize: output.shape.shapeArray)
+
+			let encoder = commandBuffer!.makeComputeCommandEncoder()
+			encoder.setComputePipelineState(kernel!)
+			encoder.setBuffer(inputBufferResource.buffer, offset: inputBufferResource.offset, at: 0)
+			encoder.setBuffer(outputBufferResource.buffer, offset: outputBufferResource.offset, at: 1)
+			encoder.setBytes(&info, length: MemoryLayout<Pool2DInfo>.stride, at: 2)
+			
+			/// Calculate grid
+			let (channel, outHeight, outWidth) = parseImgChannelShapeInfo(self.channelPosition,
+																		  shapeArray: input.shape.shapeArray)
+			let threadsPerThreadgroup = MTLSizeMake(16,
+													Int(Float(kernel!.threadExecutionWidth / 16).rounded(FloatingPointRoundingRule.up)), // incase threadExecutionWidth is very samll
+													1)
+			let threadgroupsPerGrid = MTLSizeMake((outWidth + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
+												  (outHeight + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
+												  channel)
+			encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+			encoder.endEncoding()
 		}
 		
-		resourcePrepareGroup.wait()
+		// commit command buffer
+		commandBuffer!.commit()
+		commandBuffer!.waitUntilCompleted()
 	}
 }
 

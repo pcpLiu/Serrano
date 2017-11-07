@@ -74,7 +74,7 @@ public class ComputationGraph: Graph {
 	/// A dictionary stores the sorted symbols after applying topology sorting.
 	/// The key is the depth value, and the value is the list of symbols in this depth stage.
 	public var symbolStages: [Int: [GraphSymbol]] = [Int: [GraphSymbol]]()
-	
+
 	/// Counter of backward training
 	public var epoch: Int {
 		get {
@@ -285,15 +285,24 @@ public class ComputationGraph: Graph {
 		
 		// group last stage tensors and return
 		let lastStage = self.symbolStages.keys.max()!
-		let outputDataSymbols = self.symbolStages[lastStage]?.filter { $0.symbolType.isDataSymbol()}
+		let lastStageOperators = self.symbolStages[lastStage]?.filter { $0.symbolType == SymbolType.Operator} as! [OperatorSymbol]
 		
-		guard outputDataSymbols != nil else {
+		guard lastStageOperators != nil else {
 			SerranoLogging.errorLogging(message: "Could not gather last stage tensors. Maybe graph defined is not valid.",
 			                            file: "\(#file)", function: "\(#function)", line: "\(#line)")
 			return nil
 		}
 		
-		return (outputDataSymbols as! [DataSymbol]).map {$0.bindedData!}
+		var result = [DataSymbolSupportedDataType]()
+		for op in lastStageOperators {
+			for out in op.outBounds {
+				if out.symbolType.isDataSymbol() {
+					result.append((out as! DataSymbol).bindedData!)
+				}
+			}
+		}
+		
+		return result
 	}
 	
 	/// Backward computing the grads for updatable data symbols.
@@ -329,19 +338,11 @@ public class ComputationGraph: Graph {
 		// sort
 		self.sortGraph()
 		
-		// user input bind check
-		var (valid, msg) = self.userInputBindCheck()
-		guard valid else {
-			SerranoLogging.errorLogging(message: "Some symbols havn't been binded. Detail:\(msg)",
-				file: "\(#file)", function: "\(#function)", line: "\(#line)")
-			fatalError()
-		}
-		
 		// allocate tensors for needs
-		self.allocateTensors()
+		self.allocateAllTensors()
 		
 		// verify
-		(valid, msg) = self.verifyGraph()
+		let (valid, msg) = self.verifyGraph()
 		guard valid else {
 			SerranoLogging.errorLogging(message: "Graph is not valid. Detail:\(msg)",
 				file: "\(#file)", function: "\(#function)", line: "\(#line)")
@@ -353,66 +354,78 @@ public class ComputationGraph: Graph {
 	/// Store results in `symbolStages`.
 	/// Currently, only supports __directed acyclic graph__ (i.e. no directed cycles).
 	///
-	/// - Note: If there is no input data symbols, `fatalError` will be raised.
+	/// - Note: If there is no input operator symbols, `fatalError` will be raised.
 	///
-	/// # Algorithm
+	/// ## Algorithm
 	/// Use DFS(Depth-First Search) to construct the staged information.
 	///
-	/// 1. For each data symbol whose `dataSource` is `SymbolDataSource.User`:
-	///
-	///	    I. Add this symbol to a list with depth 0.
-	///
-	///		II. Use DFS to starting from this symbol following outBounds path,
-	///         and add the visiting symbol and corresponding depth into list.
+	/// 1. Find 1st stage operator symbols by looking whose inbound symbols having no inbounds:
+	/// 2. For each op symbol in 1st stage, do visiting:
+	///	    I. Mark this op symbol with depth 0 and its all inbounds and outbounds symbols depth as 0;
+	///		II. Use DFS to starting from this op symbol following outBounds path.
+	///			Each time meet a op symbol, mark this opsymbol with depth +1. like I
 	///         Each time gos deeper, depth plus 1.
-	///
 	///     III. If the visiting symbol is already in the statck, set depth to max(this visiting depth, existing depth).
-	/// 2. Then according the list information, add symbols in same stage into `symbolStages`.
+	/// 2. Then according the list information, add symbols in same stage into `opSymbolsStages`.
 	public func sortGraph() {
-		// get input data symbols
-		let inputDataSymbols = self.symbols.filter { (UID, symbol) -> Bool in
-			return symbol.symbolType.isDataSymbol() && symbol.inBounds.count == 0
-		}
-		
-		guard inputDataSymbols.count > 0 else {
-			SerranoLogging.errorLogging(message: "Could not found input data symbols in this graph (\(self.graphLabel))." +
+		// get  op symbols
+		guard self.opSymbols().count > 0 else {
+			SerranoLogging.errorLogging(message: "Could not found operator symbols in this graph (\(self.graphLabel))." +
 				"Thus cannot generate computation graph.",
-			                            file: "\(#file)", function: "\(#function)", line: "\(#line)")
+										file: "\(#file)", function: "\(#function)", line: "\(#line)")
 			fatalError()
 		}
 		
-		// DFS
-		var symbolDepthList = [SerranoGraphSymbol: Int]() // key is UID
-		for (_, symbol) in inputDataSymbols {
-			self.visitSymbol(symbol, symbolDepthList: &symbolDepthList, currentDepth: 0)
+		// find 1st stage operator symbols
+		let firstStageOpSymbols = self.opSymbols().filter { (opSymbol) -> Bool in
+			for inSymbol in opSymbol.inBounds {
+				if inSymbol.inBounds.count > 0 {
+					return false
+				}
+			}
+			return true
 		}
 		
-		// add stage information
-		for (symbol, depth) in symbolDepthList {
-			if self.symbolStages[depth] == nil { self.symbolStages[depth] = [SerranoGraphSymbol]() }
-			self.symbolStages[depth]!.append(symbol)
+		// get op depth info
+		var opDepthInfo = [SerranoOperatorSymbol: Int]()
+		for opSymbol in firstStageOpSymbols {
+			self.visitSymbol(opSymbol as! SerranoOperatorSymbol, opDepthInfo: &opDepthInfo, currentDepth: 0)
 		}
 		
-		// set attribute
+		// add into stage info
+		for (opSymbol, stage) in opDepthInfo {
+			if self.symbolStages[stage] == nil {
+				self.symbolStages[stage] = [GraphSymbol]()
+			}
+			self.symbolStages[stage]!.append(opSymbol)
+			self.symbolStages[stage]!.append(contentsOf: opSymbol.inBounds)
+			self.symbolStages[stage]!.append(contentsOf: opSymbol.outBounds)
+		}
+		
 		self.sorted = true
 	}
 	
-	/// Visist a symbol and its outBounds symbols in DFS manner.
+	
+	///
 	///
 	/// - Parameters:
-	///   - symbol: visiting symbol
-	///   - symbolDepthList: symbolDepthList. The passed in dictionary will be mutated.
-	///   - currentDepth: current visiting depth
-	public func visitSymbol(_ symbol: GraphSymbol, symbolDepthList: inout [SerranoGraphSymbol: Int], currentDepth: Int) {
-		let serranoSymbol = symbol as! SerranoGraphSymbol
-		if symbolDepthList[serranoSymbol] == nil {
-			symbolDepthList[serranoSymbol] = currentDepth
+	///   - symbol:
+	///   - symbolDepthList:
+	///   - currentDepth:
+	internal func visitSymbol(_ opSymbol: SerranoOperatorSymbol, opDepthInfo: inout [SerranoOperatorSymbol: Int], currentDepth: Int) {
+		if opDepthInfo[opSymbol] == nil {
+			opDepthInfo[opSymbol] = currentDepth
 		} else {
-			symbolDepthList[serranoSymbol] = max(symbolDepthList[serranoSymbol]!, currentDepth)
+			opDepthInfo[opSymbol] = max(opDepthInfo[opSymbol]!, currentDepth)
 		}
 		
-		for outSymbol in symbol.outBounds {
-			self.visitSymbol(outSymbol, symbolDepthList: &symbolDepthList, currentDepth: currentDepth + 1)
+		// vist next layer op symbols
+		for outSymbol in opSymbol.outBounds {
+			for outOutSymbol in outSymbol.outBounds {
+				if outOutSymbol.symbolType == SymbolType.Operator {
+					self.visitSymbol(outOutSymbol as! SerranoOperatorSymbol, opDepthInfo: &opDepthInfo, currentDepth: currentDepth+1)
+				}
+			}
 		}
 	}
 	
@@ -427,17 +440,9 @@ public class ComputationGraph: Graph {
 	/// - Returns: `valid` represent if passing the verification and error msg if has
 	public func verifyGraph() -> (valid: Bool, msg: String) {
 		// check all data symbols have been binded
-		for (_, symbol) in self.symbols {
-			if symbol.symbolType == .Scalar {
-				let scalarSymbol = symbol as! ScalarSymbol
-				guard scalarSymbol.bindedData != nil else {
-					return (false, "ScalarSymbol(\(scalarSymbol.symbolLabel)) needs user feeded data but bindedData is nil.")
-				}
-			} else if symbol.symbolType == .Tensor {
-				let tensorSymbol = symbol as! TensorSymbol
-				guard tensorSymbol.bindedData != nil else {
-					return (false, "TensorSymbol(\(tensorSymbol.symbolLabel)) needs user feeded data but bindedData is nil.")
-				}
+		for dataSymbol in self.dataSymbols() {
+			guard dataSymbol.bindedData != nil else {
+				return (false, "DataSymbol \(dataSymbol.symbolLabel) is not binded.")
 			}
 		}
 		
@@ -533,37 +538,17 @@ public class ComputationGraph: Graph {
 	}
 	
 	
-	/// Allocate tensors for all tensor symbols.
-	/// This is used when training a network from zero.
-	///
-	/// - Note: This method ignore existing binding, allocate new tensors for all tensor symbols.
+	/// Allocate tensors for all tensor symbols whose bined data are `nil`.
 	public func allocateAllTensors() {
-		for (_, symbol) in self.symbols {
-			if symbol.symbolType == .Tensor {
+		for symbol in self.dataSymbols() {
+			if symbol.symbolType == SymbolType.Tensor {
 				var tensorSymbol = symbol as! TensorSymbol
-				tensorSymbol.bindedData = SerranoResourceManager.globalManager.allocateUnamangedTensor(tensorSymbol.shape)
-			}
-		}
-	}
-	
-	/// Allocate tensors for all tensor symbols not feeding from users.
-	/// Currently, user `SerranoResourceManager.globalManager` to allocate unmanaged resources.
-	///
-	/// TODO: Do memory dependency analize, reuser tensors.
-	public func allocateTensors() {
-		for (_, symbol) in self.symbols {
-			if symbol.symbolType == .Tensor {
-				var tensorSymbol = symbol as! TensorSymbol
-				
-				if tensorSymbol.dataSource == .User || tensorSymbol.bindedData != nil {
-					continue
-				} else {
-					tensorSymbol.bindedData = SerranoResourceManager.globalManager.allocateUnamangedTensor(tensorSymbol.shape)
+				if tensorSymbol.bindedData == nil {
+					tensorSymbol.bindedData = Tensor.randomTensor(tensorSymbol.shape)
 				}
 			}
 		}
 	}
-	
 	
 	/// Stage by stage, run all operators.
 	/// 
@@ -583,7 +568,6 @@ public class ComputationGraph: Graph {
 		}
 		
 		let stageWorkGroup = DispatchGroup()
-		let begginTime = CFAbsoluteTimeGetCurrent()
 		for stage in self.symbolStages.keys.sorted() {
 			for symbol in self.symbolStages[stage]! {
 				if symbol.symbolType == .Operator {
@@ -599,9 +583,6 @@ public class ComputationGraph: Graph {
 			// wait all complete in this stage
 			stageWorkGroup.wait()
 		}
-		
-		SerranoLogging.stdLogging(message: "Finish forward for graph \(self.graphLabel) in \(CFAbsoluteTimeGetCurrent() - begginTime) seconds ",
-			file: "\(#file)", function: "\(#function)", line: "\(#line)", loggingLevel: SerranoLoggingType.LowLevel)
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -671,7 +652,6 @@ public class ComputationGraph: Graph {
 				workGroup.enter()
 				DispatchQueue.global(qos: .userInitiated).async {
 					let opSymbol = symbol as! OperatorSymbol
-					// TODO: Improve API design.
 					// In this function operator will allocate new tensors/scalars holding grads, which is not good.
 					// The idea is that graph itself do all memory allocation, so later we can do optimization.
 					let gradsInfo = opSymbol.serranoOperator.gradCompute(mode)

@@ -23,6 +23,11 @@ public struct MTLBufferResource {
 	/// Offset from the buffer base address.
 	/// Used by sliced tensor object.
 	var offset: Int
+	
+	public init(buffer: MTLBuffer, offset: Int) {
+		self.buffer = buffer
+		self.offset = offset
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -48,6 +48,7 @@ pages:
   - Get started:
     - 'Install': 'Getting started/Install.md'
     - 'Quick Start: SimpleCNN': 'Getting started/Quick Start Simple CNN.md'
+    - 'Forward Computation': 'Getting started/Forward Computation.md'
     - 'Core Concepts':
       - 'Tensor': 'Getting started/Core concepts/Tensor.md'
       - 'Operator': 'Getting started/Core concepts/Operator.md'

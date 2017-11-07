@@ -391,9 +391,9 @@ public class ConvOperator2D: ComputableOperator {
 			}
 			let (channel, _, _) = parseImgChannelShapeInfo(self.channelPosition, shapeArray: self.inputShape!.shapeArray)
 			let weightShape = TensorShape(dataType: .float, shape: [self.numFilters, channel, self.kernelSize[0], self.kernelSize[1]])
-			weightTensorSymbol = SerranoTensorSymbol("weight", dataSource: SymbolDataSource.User, shape: weightShape)
+			weightTensorSymbol = SerranoTensorSymbol("weight", dataSource: SymbolDataSource.Parameter, shape: weightShape)
 		} else {
-			weightTensorSymbol = SerranoTensorSymbol("weight", dataSource: SymbolDataSource.User, shape: self.weight!.shape)
+			weightTensorSymbol = SerranoTensorSymbol("weight", dataSource: SymbolDataSource.Parameter, shape: self.weight!.shape)
 		}
 		return [weightTensorSymbol as GraphSymbol]
 	}
