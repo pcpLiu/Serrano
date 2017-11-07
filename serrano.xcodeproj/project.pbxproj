@@ -23,6 +23,12 @@
 		D41857AD1FACF2960060B979 /* SimpleCNN.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41857AB1FACF2960060B979 /* SimpleCNN.swift */; };
 		D41857B01FACF73E0060B979 /* SimpleCNN_imperative.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41857AF1FACF73E0060B979 /* SimpleCNN_imperative.swift */; };
 		D41857B11FACF73E0060B979 /* SimpleCNN_imperative.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41857AF1FACF73E0060B979 /* SimpleCNN_imperative.swift */; };
+		D41858031FAFE6E70060B979 /* flatbuffers_common_reader.h in Headers */ = {isa = PBXBuildFile; fileRef = D41858011FAFE6E70060B979 /* flatbuffers_common_reader.h */; };
+		D41858041FAFE6E70060B979 /* SerranoSchema_reader.h in Headers */ = {isa = PBXBuildFile; fileRef = D41858021FAFE6E70060B979 /* SerranoSchema_reader.h */; };
+		D418580B1FB00B380060B979 /* flatbuffers_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D418580A1FB00B380060B979 /* flatbuffers_test.swift */; };
+		D418580C1FB00B380060B979 /* flatbuffers_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D418580A1FB00B380060B979 /* flatbuffers_test.swift */; };
+		D418580F1FB019A20060B979 /* test_TensorValue_flatbuffer.dat in Resources */ = {isa = PBXBuildFile; fileRef = D418580E1FB019A20060B979 /* test_TensorValue_flatbuffer.dat */; };
+		D41858101FB019A20060B979 /* test_TensorValue_flatbuffer.dat in Resources */ = {isa = PBXBuildFile; fileRef = D418580E1FB019A20060B979 /* test_TensorValue_flatbuffer.dat */; };
 		D419F4DA1EE886E50035DDFB /* add_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D419F4D91EE886E50035DDFB /* add_op_test.swift */; };
 		D42030E11EF4742000969C20 /* matrix_mult_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42030E01EF4742000969C20 /* matrix_mult_op_test.swift */; };
 		D420FFB51F0D38C0006DBEF2 /* broadcast_arithmetic_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D420FFB41F0D38C0006DBEF2 /* broadcast_arithmetic_op_test.swift */; };
@@ -402,6 +408,10 @@
 		D4177E9A1E7122D700E185D9 /* utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = utils.swift; sourceTree = "<group>"; };
 		D41857AB1FACF2960060B979 /* SimpleCNN.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleCNN.swift; sourceTree = "<group>"; };
 		D41857AF1FACF73E0060B979 /* SimpleCNN_imperative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleCNN_imperative.swift; sourceTree = "<group>"; };
+		D41858011FAFE6E70060B979 /* flatbuffers_common_reader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flatbuffers_common_reader.h; sourceTree = "<group>"; };
+		D41858021FAFE6E70060B979 /* SerranoSchema_reader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SerranoSchema_reader.h; sourceTree = "<group>"; };
+		D418580A1FB00B380060B979 /* flatbuffers_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = flatbuffers_test.swift; sourceTree = "<group>"; };
+		D418580E1FB019A20060B979 /* test_TensorValue_flatbuffer.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = test_TensorValue_flatbuffer.dat; sourceTree = "<group>"; };
 		D419F4D91EE886E50035DDFB /* add_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = add_op_test.swift; sourceTree = "<group>"; };
 		D42030DE1EF4740800969C20 /* matrix_mult_op.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = matrix_mult_op.swift; sourceTree = "<group>"; };
 		D42030E01EF4742000969C20 /* matrix_mult_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = matrix_mult_op_test.swift; sourceTree = "<group>"; };
@@ -806,6 +816,7 @@
 		D4177E631E687CB100E185D9 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				D418580D1FB019870060B979 /* Testing Data */,
 				D4288ED71F438CA100C95AB5 /* SerranoMacTests */,
 				D4288EC41F438C1C00C95AB5 /* MacTestHostingApp */,
 				D4EECAE41E846B8D0014F5CE /* SerranoTests */,
@@ -866,6 +877,22 @@
 				D41857AF1FACF73E0060B979 /* SimpleCNN_imperative.swift */,
 			);
 			path = Imperative;
+			sourceTree = "<group>";
+		};
+		D41858091FB00B1B0060B979 /* io */ = {
+			isa = PBXGroup;
+			children = (
+				D418580A1FB00B380060B979 /* flatbuffers_test.swift */,
+			);
+			path = io;
+			sourceTree = "<group>";
+		};
+		D418580D1FB019870060B979 /* Testing Data */ = {
+			isa = PBXGroup;
+			children = (
+				D418580E1FB019A20060B979 /* test_TensorValue_flatbuffer.dat */,
+			);
+			path = "Testing Data";
 			sourceTree = "<group>";
 		};
 		D421B3411EF478B7009D6BEA /* basic */ = {
@@ -1128,6 +1155,8 @@
 			isa = PBXGroup;
 			children = (
 				D4CF5F621F0D7B0F006588FF /* FBSUtil.c */,
+				D41858011FAFE6E70060B979 /* flatbuffers_common_reader.h */,
+				D41858021FAFE6E70060B979 /* SerranoSchema_reader.h */,
 				D4CF5F631F0D7B0F006588FF /* FBSUtil.h */,
 				D4BBF9BB1F0D2E3800E46082 /* module.modulemap */,
 				D4CF5F641F0D7B0F006588FF /* flatcc */,
@@ -1281,6 +1310,7 @@
 		D4EECAE41E846B8D0014F5CE /* SerranoTests */ = {
 			isa = PBXGroup;
 			children = (
+				D41858091FB00B1B0060B979 /* io */,
 				D48EF53A1E7DD14A000C3C94 /* tools.swift */,
 				D45AE6A11F3D48A10039B4E4 /* graph */,
 				D4A99A031E9DC65A00AF6436 /* utils */,
@@ -1302,6 +1332,7 @@
 				D4BC26291FAA58B300AC96D5 /* flatbuffers_common_builder.h in Headers */,
 				D4BC262A1FAA58B300AC96D5 /* flatbuffers_common_reader.h in Headers */,
 				D4BC262B1FAA58B300AC96D5 /* reflection_builder.h in Headers */,
+				D41858041FAFE6E70060B979 /* SerranoSchema_reader.h in Headers */,
 				D4BC262C1FAA58B300AC96D5 /* reflection_reader.h in Headers */,
 				D4BC262D1FAA58B300AC96D5 /* reflection_verifier.h in Headers */,
 				D4BC262E1FAA58B300AC96D5 /* cdump.h in Headers */,
@@ -1345,6 +1376,7 @@
 				D4BC26091FAA589D00AC96D5 /* flatcc_json_printer.h in Headers */,
 				D4BC260A1FAA589D00AC96D5 /* flatcc_portable.h in Headers */,
 				D4BC260B1FAA589D00AC96D5 /* flatcc_rtconfig.h in Headers */,
+				D41858031FAFE6E70060B979 /* flatbuffers_common_reader.h in Headers */,
 				D4BC260C1FAA589D00AC96D5 /* flatcc_types.h in Headers */,
 				D4BC260D1FAA589D00AC96D5 /* flatcc_unaligned.h in Headers */,
 				D4BC260E1FAA589D00AC96D5 /* flatcc_verifier.h in Headers */,
@@ -1473,10 +1505,12 @@
 					};
 					D4EECACC1E846B2D0014F5CE = {
 						CreatedOnToolsVersion = 8.0;
-						ProvisioningStyle = Manual;
+						DevelopmentTeam = R29957ST6P;
+						ProvisioningStyle = Automatic;
 					};
 					D4EECAE21E846B8D0014F5CE = {
 						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = R29957ST6P;
 						ProvisioningStyle = Manual;
 						TestTargetID = D4EECACC1E846B2D0014F5CE;
 					};
@@ -1511,6 +1545,7 @@
 			files = (
 				D4288ECA1F438C1C00C95AB5 /* Assets.xcassets in Resources */,
 				D4288ECD1F438C1C00C95AB5 /* Main.storyboard in Resources */,
+				D41858101FB019A20060B979 /* test_TensorValue_flatbuffer.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1543,6 +1578,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D4EECADA1E846B2E0014F5CE /* LaunchScreen.storyboard in Resources */,
+				D418580F1FB019A20060B979 /* test_TensorValue_flatbuffer.dat in Resources */,
 				D4EECAD71E846B2D0014F5CE /* Assets.xcassets in Resources */,
 				D4EECAD51E846B2D0014F5CE /* Main.storyboard in Resources */,
 			);
@@ -1592,6 +1628,7 @@
 				D44BC9AB1F9ED5C8003D0956 /* thresholdedrelu_op_test.swift in Sources */,
 				D41857AD1FACF2960060B979 /* SimpleCNN.swift in Sources */,
 				D4288F0B1F438EDF00C95AB5 /* broadcast_arithmetic_op_test.swift in Sources */,
+				D418580C1FB00B380060B979 /* flatbuffers_test.swift in Sources */,
 				D44BC9A71F9ED5C8003D0956 /* sigmoid_op_test.swift in Sources */,
 				D4288F341F438EE900C95AB5 /* expm1_op_test.swift in Sources */,
 				D4288F221F438EE900C95AB5 /* radian_op_test.swift in Sources */,
@@ -1765,6 +1802,7 @@
 				D4BD5DFF1EE72F4F0078C508 /* tanh_op_test.swift in Sources */,
 				D48F7E6B1F1E668F007CB3BF /* pad_op_test.swift in Sources */,
 				D4244CF31F09BCC1000A4693 /* reduce_mean_op_test.swift in Sources */,
+				D418580B1FB00B380060B979 /* flatbuffers_test.swift in Sources */,
 				D44BC9B01F9ED5C8003D0956 /* relu_op_test.swift in Sources */,
 				D4DEA5DB1EF06BB100B3DE60 /* rdiv_op_test.swift in Sources */,
 				D4A5FB0C1EFD98D900919288 /* transpose_op_test.swift in Sources */,
@@ -2120,6 +2158,7 @@
 				SWIFT_INCLUDE_PATHS = "Source/library/**";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "Source/library/**";
 				VALID_ARCHS = "arm64 armv7 armv7s x86_64";
 			};
 			name = Debug;
@@ -2151,6 +2190,7 @@
 				SWIFT_INCLUDE_PATHS = "Source/library/**";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "Source/library/**";
 				VALID_ARCHS = "arm64 armv7 armv7s x86_64";
 			};
 			name = Release;
@@ -2161,9 +2201,9 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = R29957ST6P;
 				INFOPLIST_FILE = Tests/TestingHostApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -2181,9 +2221,9 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = R29957ST6P;
 				INFOPLIST_FILE = Tests/TestingHostApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -2201,7 +2241,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = R29957ST6P;
 				INFOPLIST_FILE = "Tests/SerranoTests/Supporting Files/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = "";

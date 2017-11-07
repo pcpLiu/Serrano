@@ -11,3 +11,7 @@ DerivedData/
 
 # generated local docs
 generated_docs/*
+
+
+# data folder for testing
+data_test/

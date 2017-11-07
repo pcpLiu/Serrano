@@ -1,0 +1,12 @@
+namespace Serrano.Params;
+
+table Tensor {
+	uid:string;
+	values:[float];
+}
+
+table Params {
+	tensors:[Tensor];
+}
+
+root_type Params;
