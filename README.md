@@ -53,6 +53,10 @@ Add `Serrano` into the `Target Dependencies` of your target.
 ## Docs
 The guides and APIs are hosted at [http://serrano-lib.org](http://serrano-lib.org).
 
+#### Quick example
+
+Check [Serrano/Examples/Graph/VGG16.swift](https://github.com/pcpLiu/Serrano/blob/master/Examples/Graph/VGG16.swift) seeing how to use Graph API to construct a forward VGG16.
+
 ## Questions && Issues
  :bangbang: Please __only open [bug]/[feature request] related issues__ in THIS repo and follow this [issue guide](). :bangbang: 
 
