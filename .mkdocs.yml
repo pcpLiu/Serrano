@@ -39,6 +39,10 @@ markdown_extensions:
       custom_checkbox: true
   - pymdownx.tilde
 
+# https://squidfunk.github.io/mkdocs-material/extensions/pymdown/#usage
+extra_javascript:
+  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
+
 extra:
     version: v0.1.2-alpha
 
@@ -49,12 +53,27 @@ pages:
     - 'Install': 'Getting started/Install.md'
     - 'Quick Start: SimpleCNN': 'Getting started/Quick Start Simple CNN.md'
     - 'Forward Computation': 'Getting started/Forward Computation.md'
+    - 'FAQ': 'Getting started/FAQ.md'
+  - Operator list:
+    - Serrano operators: 'operators/about.md'
+    - Basic:
+      - Unary: 'operators/unary.md'
+      - Binary: 'operators/binary.md'
+      - Reduce: 'operators/reduce.md'
+      - Broadcast: 'operators/broadcast.md'
+      - Matrix transpose: 'operators/matrix_transpose.md'
+      - Matrix Multiplication: 'operators/matrix_mult.md'
+    - Neural network:
+      - Common: 
+        - Fully Connected: 'operators/fully_connected.md'
+      - Convolution: 'operators/conv.md'
+      - Pooling: 'operators/pooling.md'
+      - Activation: 'operators/activation.md'
+  - Extensibility:
     - 'Core Concepts':
       - 'Tensor': 'Getting started/Core concepts/Tensor.md'
       - 'Operator': 'Getting started/Core concepts/Operator.md'
       - 'Graph and Symbol': 'Getting started/Core concepts/Graph.md'
-    - 'FAQ': 'Getting started/FAQ.md'
-  - Extensibility:
     - 'Write your own operators' : 'Extension/Write your own operator.md'
     - 'Write your own optimizers': 'Extension/Write your own optimizer.md'
   - API Reference: 'API/API Reference.md'

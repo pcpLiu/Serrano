@@ -1405,7 +1405,7 @@ public class LogOperator: UnaryOperator {
 }
 
 /**
- Compute element-wise `exp(x) - 1` values of input tensors.
+ Compute element-wise `e^x - 1` values of input tensors.
 
 - Note: This operator may output `NaN` or `Infinite` values and operator would not check these situations.
  */

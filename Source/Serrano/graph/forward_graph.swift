@@ -8,6 +8,9 @@
 
 import Foundation
 
+
+//TODO: Allocate a whole tensor for param and calcualtion to save memeory
+
 /**
 `ForwardGraph` is a subclass of `ComputationGraph` that can only do forward computation.
 Thus, it has mooptimization during forward computation and the internal results are not accessable.
