@@ -28,10 +28,10 @@
 Aiming to offering popular and cutting edge techs in deep learning area on iOS devices, Serrano is developed as a tool for developers & researchers with deep learning background to quickly implement their ideas on iOS devices. Meanwhile, it supports macOS as a pure swift framework bonus. 
 
 ## Features
-- Implemented an efficient NDArray class [Tensor](http://serrano-lib.org/docs/v0.1.0-alpha/api/Classes/Tensor.html) which supports:
+- Implemented an efficient NDArray class [Tensor](http://serrano-lib.org/docs/latest/api/Classes/Tensor.html) which supports:
   - CPU calculation with [BLAS](https://developer.apple.com/documentation/accelerate/blas)/[vecLib](https://developer.apple.com/documentation/accelerate/veclib)/[vDSP](https://developer.apple.com/documentation/accelerate/vdsp) for better performance 
   - GPU calculation on [no-copy MTLBuffer](https://developer.apple.com/documentation/metal/mtldevice/1433382-makebuffer) for memory saving
-- Including common [operators](http://serrano-lib.org/docs/latest/api/Classes.html) for constructing various computation graphs and it is easy to [implement custom operators](http://serrano-lib.org/docs/latest/guides/Extension/Write%20your%20own%20operator/)
+- Offer common operators ([operator list](http://serrano-lib.org/)) for constructing various computation graphs and it is easy to [implement custom operators](http://serrano-lib.org/docs/latest/guides/Extension/Write%20your%20own%20operator/)
 - [Graph API](http://serrano-lib.org/docs/latest/api/Classes/ComputationGraph.html) support forward and backward with auto differentiation 
 - No third-party library dependent. Compatible with iOS 10 and macOS.
 
