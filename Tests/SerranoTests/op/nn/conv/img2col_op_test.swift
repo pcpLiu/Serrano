@@ -358,7 +358,6 @@ class Img2ColOpTest: XCTestCase {
 		delegate.dispatchGroup = workGroup
 		
 		let _ = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU)
-		print(SerranoEngine.configuredEngine.GPUDevice!)
 		
 		for i in 0..<numCase {
 			print("Test \(i+1)...")
