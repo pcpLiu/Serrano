@@ -1681,7 +1681,7 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 		
 		var elementOffset = 0
 		for (dimIndex, index) in sliceIndex.enumerated() {
-			elementOffset += index * self.shape.shapeArray[dimIndex]
+			elementOffset += index * self.shape.shapeArray.suffix(from: dimIndex + 1).reduce(1, *)
 		}
 		let address = self._dataMemoryBaseAdrress + elementOffset
 		let count = self._shape.shapeArray.suffix(from: sliceIndex.count).reduce(1, *)

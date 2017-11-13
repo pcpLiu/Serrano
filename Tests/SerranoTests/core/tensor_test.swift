@@ -767,24 +767,9 @@ class TensorTest: XCTestCase {
 	// MARK: slice
 	/**
 	Target:
-	public func batchSlice(_ batchIndex: Int) -> Tensor?
+	public func slice(sliceIndex:[Int]) -> Tensor
 	*/
-	func testTensorBatchSlice() {
-		let numCase = 1
-		for i in 0..<numCase {
-			print("Test \(i+1)...")
-			
-//			let tensor = randomTensor(dimensions: randomInt([1, 5]), dimensionSizeRange: [2, 6], dataType: .int)
-			let tensor = randomTensor(fromShape: TensorShape(dataType: .int, shape: [2,3,4,5]))
-			print("Genereate root tensor: ")
-			print("\(tensor.nestedArrayFloat())")
-			
-			let slice = tensor.slice(sliceIndex: [0, 1])
-			print("slice: \(slice.shape)")
-			print("\(slice.nestedArrayFloat())")
-			
-			print("Finish Test \(i+1)\n")
-			//TODO: Test verify
-		}
+	func testTensorSlice() {
+		// TODO: Add tests
 	}
 }

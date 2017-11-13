@@ -11,7 +11,7 @@ import XCTest
 
 
 /// Do naive  convolution to get result
-func naiveConvVerify(input: Tensor, weight: Tensor, outputShape: TensorShape, pad: PaddingMode, stride: [Int], channelOrder: TensorChannelOrder, kernelSize: [Int]) -> Tensor {
+func naiveConvVerify(input: Tensor, weight: Tensor, bias: Tensor, outputShape: TensorShape, pad: PaddingMode, stride: [Int], channelOrder: TensorChannelOrder, kernelSize: [Int]) -> Tensor {
 	let tensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(outputShape)
 	let (channel, inHeight, inWidth) = parseImgChannelShapeInfo(channelOrder, shapeArray: input.shape.shapeArray)
 	let numFilter = weight.shape.shapeArray[0]
@@ -39,6 +39,15 @@ func naiveConvVerify(input: Tensor, weight: Tensor, outputShape: TensorShape, pa
 		}
 	}
 	
+	// bias
+	for h in 0..<outHeight {
+		for w in 0..<outWidth {
+			for c in 0..<numFilter {
+				tensor[h, w, c] += bias[c]
+			}
+		}
+	}
+	
 	return tensor
 }
 
@@ -50,7 +59,7 @@ class OperatorDelegateConv2D: OperatorDelegateConv {
 		print("Calculation time: \(CFAbsoluteTimeGetCurrent() - self.startTime!) s")
 		
 		for (input, output) in zip(op!.inputTensors!, op!.outputTensors!) {
-			let veryTensor = naiveConvVerify(input: input, weight: self.op!.weight!,
+			let veryTensor = naiveConvVerify(input: input, weight: self.op!.weight!, bias: self.op!.bias!,
 			                                 outputShape: output.shape, pad: op!.padMode, stride: op!.stride, channelOrder: op!.channelPosition,
 			                                 kernelSize: op!.kernelSize)
 			let outReader = output.floatValueReader
@@ -58,6 +67,9 @@ class OperatorDelegateConv2D: OperatorDelegateConv {
 			for i in 0..<output.count {
 				XCTAssertEqual(outReader[i], verifyReader[i], accuracy: abs(verifyReader[i]*0.001))
 			}
+//			print(veryTensor.nestedArrayFloat())
+//			print(output.nestedArrayFloat())
+//			print(self.op!.bias!.nestedArrayFloat())
 		}
 	}
 	
@@ -382,19 +394,21 @@ class CovOpTest: XCTestCase {
 		delegate.dispatchGroup = workGroup
 		
 		let _ = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU)
-		print(SerranoEngine.configuredEngine.GPUDevice!)
 		
 		for i in 0..<numCase {
 			print("Test case \(i+1)...")
 			
 			// valid num filters
 			let numFilters = randomInt([1, 10])
+//			let numFilters = 3
 			
 			// valid kernel size
 			let kernelSize = [randomInt([1, 5]), randomInt([1, 5])]
+//			let kernelSize = [2, 2]
 			
 			// valid stride
 			let stride = [randomInt([1, 5]), randomInt([1, 5])]
+//			let stride = [1, 1]
 			
 			// valid diliation
 			let diliation = [1, 1]
@@ -413,8 +427,9 @@ class CovOpTest: XCTestCase {
 			
 			// decide input shape
 			var range = [50, 50]
+//			var range = [4, 4]
 			if i >= 8 {
-				range = [800, 800]
+				range = [500, 500]
 			}
 			let channel = randomInt([1, 4])
 			var inputShape = TensorShape(dataType: .int, shape: [randomInt(range), randomInt(range), channel])
@@ -431,7 +446,6 @@ class CovOpTest: XCTestCase {
 			var input = [Tensor]()
 			input.append(randomTensor(fromShape: inputShape))
 			
-			
 			// generate output tensors
 			let outputShape = convOp.outputShape(shapeArray: input.map {$0.shape})
 			var output = [Tensor]()
@@ -442,10 +456,13 @@ class CovOpTest: XCTestCase {
 			// weight
 			let weight:Tensor = randomTensor(fromShape: TensorShape(dataType: .int,
 			                                                        shape: [numFilters, channel, kernelSize[0], kernelSize[1]]))
-		
+			// valid bias
+			let bias = randomTensor(fromShape: TensorShape(dataType: .int, shape: [numFilters]))
+			
 			convOp.inputTensors = input
 			convOp.outputTensors = output
 			convOp.weight = weight
+			convOp.bias = bias
 			delegate.op = convOp
 			
 			if i % 2 == 0 {

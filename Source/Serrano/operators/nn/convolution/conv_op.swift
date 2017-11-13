@@ -22,6 +22,7 @@ All tensors in `inputTensors` should have same shapes
 ## Shape specification
 - inputTensors: each tensor: `[channel, height, width]` or `[height, width, channel]` according to `channelPosition`
 - weight: `[num_filter，channel, kernelSize[0], kernelSize[1]]`,
+- bias: `[num_filter]`,
 - outputTensors: each tensor: `[out_height, out_width, num_filter]`, i.e., `TensorChannelOrder.Last`
 
 ## nil weight
@@ -96,6 +97,12 @@ public class ConvOperator2D: ComputableOperator {
 	/// The weight tensor.
 	public var weight: Tensor?
 	
+	/// If use `bias`. Default is `true`.
+	public var biasEnabled: Bool
+	
+	/// The bias tensor.
+	public var bias: Tensor?
+	
 	/// The input shape
 	/// Used to indicate the input tensors' shape.
 	/// Should not be `nil` construction from scratch.
@@ -113,6 +120,7 @@ public class ConvOperator2D: ComputableOperator {
 	///   - padMode:
 	///   - channelPosition:
 	///   - weight:
+	///   - bias:
 	///   - dilation:
 	///   - computationDelegate:
 	///   - inputTensors:
@@ -125,7 +133,9 @@ public class ConvOperator2D: ComputableOperator {
 	            padMode: PaddingMode = .Valid,
 	            channelPosition: TensorChannelOrder = .First,
 	            weight: Tensor? = nil,
+				bias: Tensor? = nil,
 	            dilation: [Int] = [1, 1],
+				biasEnabled: Bool = true,
 	            computationDelegate: OperatorCalculationDelegate? = nil,
 	            inputTensors: [Tensor]? = nil, outputTensors: [Tensor]? = nil,
 	            operatorLabel: String = "Conv2DOp",
@@ -138,6 +148,8 @@ public class ConvOperator2D: ComputableOperator {
 		self.padMode = padMode
 		self.channelPosition = channelPosition
 		self.weight = weight
+		self.bias = bias
+		self.biasEnabled = biasEnabled
 		self.computationDelegate = computationDelegate
 		self.inputTensors = inputTensors
 		self.outputTensors = outputTensors
@@ -174,6 +186,8 @@ public class ConvOperator2D: ComputableOperator {
 			                            file: "\(#file)", function: "\(#function)", line: "\(#line)")
 			return nil
 		}
+		
+		
 		
 		// stride check
 		guard self.stride.count == 2 && self.stride[0] > 0 && self.stride[1] > 0 else {
@@ -337,7 +351,7 @@ public class ConvOperator2D: ComputableOperator {
 	///
 	/// -Note: if cannot bind all needed parameters. `fatalError` will be raised.
 	public func bindParamSymbols(_ symbols: [GraphSymbol]) {
-		let paramsLabels = ["weight"]
+		let paramsLabels = ["weight", "bias"]
 		
 		for label in paramsLabels {
 			let symbol = (symbols.filter {$0.symbolLabel == label}).first
@@ -358,13 +372,21 @@ public class ConvOperator2D: ComputableOperator {
 				fatalError("Faltal error raised by Serrano. Check log for details.")
 			}
 		
-//			self.weight = dataSymbol.bindedData! as! Tensor
+		if label == "weight" {
 			guard let weightTensor = dataSymbol.bindedData! as? Tensor else {
-				SerranoLogging.errorLogging(message: "Cov2D operator \(self.operatorLabel) was trying to bind to data symbol \(dataSymbol). But seems this symbol is not a tensor symbol as expected.",
+				SerranoLogging.errorLogging(message: "Fully connected operator \(self.operatorLabel) is trying to bind to data symbol \(dataSymbol) for weight. But seems this symbol is not a tensor symbol as expected.",
 					file: "\(#file)", function: "\(#function)", line: "\(#line)")
 				fatalError("Faltal error raised by Serrano. Check log for details.")
 			}
 			self.weight = weightTensor
+		} else {
+			guard let biasTensor = dataSymbol.bindedData! as? Tensor else {
+				SerranoLogging.errorLogging(message: "Fully connected operator \(self.operatorLabel) is trying to bind to data symbol \(dataSymbol) for bias. But seems this symbol is not a tensor symbol as expected.",
+					file: "\(#file)", function: "\(#function)", line: "\(#line)")
+				fatalError("Faltal error raised by Serrano. Check log for details.")
+			}
+			self.bias = biasTensor
+		}
 		}
 	}
 	
@@ -372,6 +394,8 @@ public class ConvOperator2D: ComputableOperator {
 	///
 	/// - Returns:
 	public func paramSymbols() -> [GraphSymbol] {
+		var symbols = [GraphSymbol]()
+		
 		let weightTensorSymbol: SerranoTensorSymbol
 		if self.weight == nil {
 			// refer from input shape
@@ -395,7 +419,15 @@ public class ConvOperator2D: ComputableOperator {
 		} else {
 			weightTensorSymbol = SerranoTensorSymbol("weight", dataSource: SymbolDataSource.Parameter, shape: self.weight!.shape)
 		}
-		return [weightTensorSymbol as GraphSymbol]
+		symbols.append(weightTensorSymbol as GraphSymbol)
+		
+		if self.biasEnabled {
+			let biasShape = TensorShape(dataType: .float, shape: [weightTensorSymbol.shape.shapeArray[0]])
+			let biasSymbol = SerranoTensorSymbol("bias", dataSource: SymbolDataSource.Parameter, shape: biasShape)
+			symbols.append(biasSymbol as GraphSymbol)
+		}
+		
+		return symbols
 	}
 	
 	/// Cpu calculation
@@ -460,6 +492,20 @@ public class ConvOperator2D: ComputableOperator {
 				
 				// change back output tensor shape
 				output.shape = outputShape
+				
+				// bias adding if applicable
+				if self.biasEnabled {
+					for height_index in 0..<output.shape.shapeArray[0] {
+						for width_index in 0..<output.shape.shapeArray[1] {
+							// for each channel of output tensor, adding with bias tensor
+							let sliceIndex = [height_index, width_index]
+							let sliceTensor = output.slice(sliceIndex: sliceIndex)
+							let add = AddOperator(inputTensors: [sliceTensor, self.bias!], outputTensors: [sliceTensor])
+							add.disableInputOutputCheck = true
+							add.compute(.CPU)
+						}
+					}
+				}
 				
 				workGroup.leave()
 			}
