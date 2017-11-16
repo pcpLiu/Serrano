@@ -248,12 +248,8 @@ public protocol TensorSymbol: DataSymbol {
 extension TensorSymbol {
 	public func evaluate(_ mode: OperatorComputationMode = .GPU) ->  [DataSymbolSupportedDataType]? {
 		let graph = self.generateOutputGraph()
-		let result = graph.forward(mode: mode)
-		if result == nil {
-			return nil
-		} else {
-			return result! as [DataSymbolSupportedDataType]
-		}
+		graph.forward(mode: mode)
+		return [self.bindedData!]
 	}
 }
 
@@ -324,7 +320,8 @@ public protocol OperatorSymbol: GraphSymbol {
 extension OperatorSymbol {
 	public func evaluate(_ mode: OperatorComputationMode = .GPU) -> [DataSymbolSupportedDataType]? {
 		let graph = self.generateOutputGraph()
-		return graph.forward(mode: mode)
+		graph.forward(mode: mode)
+		return self.serranoOperator.outputTensors! as! [DataSymbolSupportedDataType]
 	}
 	
 	/// Add to `paramSymbols`

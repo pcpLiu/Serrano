@@ -279,30 +279,9 @@ public class ComputationGraph: Graph {
 	///
 	/// - Parameter mode: computation mode
 	/// - Returns: Array of tensors/Scalar or `nil` if error happens
-	public func forward(mode: OperatorComputationMode) -> [DataSymbolSupportedDataType]? {
+	public func forward(mode: OperatorComputationMode)  {
 		// compute in stage order
 		self.stageOrderCalculate(mode: mode)
-		
-		// group last stage tensors and return
-		let lastStage = self.symbolStages.keys.max()!
-		let lastStageOperators = self.symbolStages[lastStage]?.filter { $0.symbolType == SymbolType.Operator} as! [OperatorSymbol]
-		
-		guard lastStageOperators != nil else {
-			SerranoLogging.errorLogging(message: "Could not gather last stage tensors. Maybe graph defined is not valid.",
-			                            file: "\(#file)", function: "\(#function)", line: "\(#line)")
-			return nil
-		}
-		
-		var result = [DataSymbolSupportedDataType]()
-		for op in lastStageOperators {
-			for out in op.outBounds {
-				if out.symbolType.isDataSymbol() {
-					result.append((out as! DataSymbol).bindedData!)
-				}
-			}
-		}
-		
-		return result
 	}
 	
 	/// Backward computing the grads for updatable data symbols.
@@ -329,7 +308,6 @@ public class ComputationGraph: Graph {
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Forawrd related methods
-	
 	
 	/// Prepare before forwarding.
 	/// Usually should be called just before 1st fowarding.

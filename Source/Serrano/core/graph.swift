@@ -75,8 +75,7 @@ public protocol Graph {
 	/// Forward computing from inputs to outputs.
 	///
 	/// - Parameter mode: computation mode
-	/// - Returns: Array of tensors/scalars. `nil` if met errors.
-	func forward(mode: OperatorComputationMode) -> [DataSymbolSupportedDataType]?
+	func forward(mode: OperatorComputationMode)
 	
 	/// Backward computing the grads for updatable data symbols.
 	///
