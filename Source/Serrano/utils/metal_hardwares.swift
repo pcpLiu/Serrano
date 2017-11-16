@@ -62,18 +62,18 @@ public class MetalHardwareChecker {
 		
 		// ios Test
 		#if os(iOS)
-		let device = SerranoEngine.configuredEngine.GPUDevice
-		guard device != nil else {
-			return false
-		}
-		
-		for feature in GPU_FAMILTY_NOT_SUPPORT_MPS {
-			if device!.supportsFeatureSet(feature) {
+			let device = SerranoEngine.configuredEngine.GPUDevice
+			guard device != nil else {
 				return false
 			}
-		}
-		
-		return true
+			
+			for feature in GPU_FAMILTY_NOT_SUPPORT_MPS {
+				if device!.supportsFeatureSet(feature) {
+					return false
+				}
+			}
+			
+			return true
 		#endif
 	}
 }

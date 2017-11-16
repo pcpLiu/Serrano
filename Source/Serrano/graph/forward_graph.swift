@@ -77,7 +77,6 @@ public class ForwardGraph: ComputationGraph {
 	override public func checkShapeChain() -> (valid: Bool, msg: String) {
 		for symbol in self.opSymbols() {
 			var opSymbol = symbol
-			print("Operator: \(opSymbol.serranoOperator.operatorLabel)")
 			// input calculation tensor symbol shape correction
 			for symbol in (opSymbol.inBounds.filter {$0.symbolType == SymbolType.Tensor}) {
 				let tensorSymbol = symbol as! TensorSymbol

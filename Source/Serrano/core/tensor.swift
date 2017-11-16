@@ -1161,7 +1161,7 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	/// - Returns: left tensor after calculated.
 	@discardableResult public static func &+(left: Tensor, right:Tensor) -> Tensor {
 		let op = AddOperator(inputTensors: [left, right], outputTensors: [left])
-		op.compute()
+		op.compute(.GPU)
 		return left
 	}
 	

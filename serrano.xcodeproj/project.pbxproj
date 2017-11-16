@@ -168,7 +168,6 @@
 		D4BC25D71FAA579900AC96D5 /* graph_symbol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D410732D1F390AB200F26C1F /* graph_symbol.swift */; };
 		D4BC25D81FAA579900AC96D5 /* computation_graph.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41073301F3912FB00F26C1F /* computation_graph.swift */; };
 		D4BC25D91FAA579900AC96D5 /* fullyconnected_op.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48F7E2C1F1BB10F007CB3BF /* fullyconnected_op.swift */; };
-		D4BC25DA1FAA579900AC96D5 /* fullyconnected_op.metal in Sources */ = {isa = PBXBuildFile; fileRef = D48F7E6C1F1FA354007CB3BF /* fullyconnected_op.metal */; };
 		D4BC25DB1FAA579900AC96D5 /* batchnorm_op.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4288EB81F41E77A00C95AB5 /* batchnorm_op.swift */; };
 		D4BC25DC1FAA579900AC96D5 /* pooling_op.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E71F0A1F20E01700C54550 /* pooling_op.swift */; };
 		D4BC25DD1FAA579900AC96D5 /* pooling_op.metal in Sources */ = {isa = PBXBuildFile; fileRef = D4E71F0C1F20E02400C54550 /* pooling_op.metal */; };
@@ -255,7 +254,6 @@
 		D4BC262F1FAA58B300AC96D5 /* elapsed.h in Headers */ = {isa = PBXBuildFile; fileRef = D4CF5F9B1F0D7B0F006588FF /* elapsed.h */; };
 		D4BC26301FAA58B300AC96D5 /* hexdump.h in Headers */ = {isa = PBXBuildFile; fileRef = D4CF5F9C1F0D7B0F006588FF /* hexdump.h */; };
 		D4BC26311FAA58B300AC96D5 /* readfile.h in Headers */ = {isa = PBXBuildFile; fileRef = D4CF5F9D1F0D7B0F006588FF /* readfile.h */; };
-		D4BC26321FAA616C00AC96D5 /* fullyconnected_op.metal in Resources */ = {isa = PBXBuildFile; fileRef = D48F7E6C1F1FA354007CB3BF /* fullyconnected_op.metal */; };
 		D4BC26331FAA616C00AC96D5 /* pooling_op.metal in Resources */ = {isa = PBXBuildFile; fileRef = D4E71F0C1F20E02400C54550 /* pooling_op.metal */; };
 		D4BC26341FAA616C00AC96D5 /* conv_op.metal in Resources */ = {isa = PBXBuildFile; fileRef = D44DF4811FA22E480028198E /* conv_op.metal */; };
 		D4BC26351FAA616C00AC96D5 /* img2col_op.metal in Resources */ = {isa = PBXBuildFile; fileRef = D422593E1F44CE6200A4DDFF /* img2col_op.metal */; };
@@ -464,7 +462,6 @@
 		D48F7E631F1E4ABF007CB3BF /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
 		D48F7E651F1E4BF6007CB3BF /* matrix_mult_op.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = matrix_mult_op.metal; sourceTree = "<group>"; };
 		D48F7E6A1F1E668F007CB3BF /* pad_op_test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = pad_op_test.swift; sourceTree = "<group>"; };
-		D48F7E6C1F1FA354007CB3BF /* fullyconnected_op.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = fullyconnected_op.metal; sourceTree = "<group>"; };
 		D4A3110A1EE262AF00019DBD /* unary_op.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = unary_op.swift; sourceTree = "<group>"; };
 		D4A567801EA32AEC001CEA4E /* copy_op_test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = copy_op_test.swift; sourceTree = "<group>"; };
 		D4A5FB081EFD932B00919288 /* transpose_op.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = transpose_op.swift; sourceTree = "<group>"; };
@@ -1037,7 +1034,6 @@
 			isa = PBXGroup;
 			children = (
 				D48F7E2C1F1BB10F007CB3BF /* fullyconnected_op.swift */,
-				D48F7E6C1F1FA354007CB3BF /* fullyconnected_op.metal */,
 				D4288EB81F41E77A00C95AB5 /* batchnorm_op.swift */,
 			);
 			path = common;
@@ -1561,7 +1557,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4BC26321FAA616C00AC96D5 /* fullyconnected_op.metal in Resources */,
 				D4BC26331FAA616C00AC96D5 /* pooling_op.metal in Resources */,
 				D4BC26341FAA616C00AC96D5 /* conv_op.metal in Resources */,
 				D4BC26351FAA616C00AC96D5 /* img2col_op.metal in Resources */,
@@ -1728,7 +1723,6 @@
 				D4BC25D71FAA579900AC96D5 /* graph_symbol.swift in Sources */,
 				D4BC25D81FAA579900AC96D5 /* computation_graph.swift in Sources */,
 				D4BC25D91FAA579900AC96D5 /* fullyconnected_op.swift in Sources */,
-				D4BC25DA1FAA579900AC96D5 /* fullyconnected_op.metal in Sources */,
 				D4BC25DB1FAA579900AC96D5 /* batchnorm_op.swift in Sources */,
 				D4BC25DC1FAA579900AC96D5 /* pooling_op.swift in Sources */,
 				D4BC269A1FABBF5C00AC96D5 /* flatbuffer.swift in Sources */,

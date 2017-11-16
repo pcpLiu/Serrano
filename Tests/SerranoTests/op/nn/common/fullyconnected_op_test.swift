@@ -298,7 +298,7 @@ class FullyconnectedOpTest: XCTestCase {
 	internal func gpu()
 	*/
 	func testCompute() {
-		let numCase = 1
+		let numCase = 10
 		let op = FullyconnectedOperator(inputDim: 1, numUnits: 1)
 		
 		var numUnits = 0

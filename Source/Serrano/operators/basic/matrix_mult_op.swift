@@ -9,8 +9,8 @@
 import Foundation
 import Accelerate
 import Metal
-#if  !((arch(i386)  || arch(x86_64)) && os(iOS))  // prevent build error on simulator
-import MetalPerformanceShaders
+#if  !((arch(i386)  || arch(x86_64)) && os(iOS)) // prevent build error on simulaor
+	import MetalPerformanceShaders
 #endif
 
 /// This struct corresponds to the `MatrixDimInfo` struct in file 'matrix_mult_op.metal'
@@ -94,6 +94,9 @@ public class MatrixMultOperator: ComputableOperator {
 			return OperatorMappingType.Constant
 		}
 	}
+	
+	/// If use MPS. Default is `false`
+	internal var disabledMPS: Bool = false
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializer
@@ -311,29 +314,6 @@ public class MatrixMultOperator: ComputableOperator {
 		return [GraphSymbol]()
 	}
 	
-	
-	/// Get M, N, K attributes
-	///
-	/// - Returns: M, N, K
-	internal func MNKFetch() -> (M: Int, N: Int, K: Int) {
-		let tensorA = self.inputTensors![0]
-		let tensorB = self.inputTensors![1]
-		
-		var M = tensorA.shape.shapeArray[0]
-		if self.transposeA {
-			M = tensorA.shape.shapeArray[1]
-		}
-		var N = tensorB.shape.shapeArray[1]
-		if self.transposeB {
-			N = tensorB.shape.shapeArray[0]
-		}
-		var K = tensorA.shape.shapeArray[1]
-		if self.transposeA {
-			K = tensorA.shape.shapeArray[0]
-		}
-		return (M, N, K)
-	}
-	
 	/// Get M, N, K attributes
 	///
 	/// - Returns: M, N, K
@@ -383,10 +363,13 @@ public class MatrixMultOperator: ComputableOperator {
 	/// This method choose proper kernel or MPS to do calculation
 	internal func gpu() {
 		// Use MPS if possible
-//		if MetalHardwareChecker.supportMPS() {
-//			self.gpu_kernel_MPS()
-//			return
-//		}
+		if !self.disabledMPS && MetalHardwareChecker.supportMPS() {
+			if #available(OSX 10.13, iOS 10.0, *) {
+				self.gpu_kernel_MPS()
+				return
+			}
+		}
+		
 		// choose kernel
 		if self.transposeA && !self.transposeB {
 			self.gpu_kernel_submatrix()
@@ -563,38 +546,44 @@ public class MatrixMultOperator: ComputableOperator {
 		workGroup.wait()
 	}
 	
+	@available(OSX 10.13, iOS 10.0, *)
 	internal func gpu_kernel_MPS() {
-		#if  !((arch(i386)  || arch(x86_64)) && os(iOS)) && !(arch(x86_64))// prevent build error on simulator
-			let tensors = [self.inputTensors![0], self.inputTensors![1], self.outputTensors![0]]
+		#if  !((arch(i386)  || arch(x86_64)) && os(iOS))
+		// input B
+		let inputB = self.inputTensors!.last!
+		let inputBBuffer = SerranoResourceManager.globalManager.allocateUnmanagedMTLBuffe(inputB)
+		let inputBMatrixDescript =  MPSMatrixDescriptor(dimensions: inputB.shape.shapeArray[0], columns: inputB.shape.shapeArray[1],
+												rowBytes:  inputB.shape.shapeArray[1] * MemoryLayout<Float>.stride,
+												dataType: .float32)
+		let inputBMatrix = MPSMatrix(buffer: inputBBuffer, descriptor: inputBMatrixDescript)
 		
-			//TODO: IMPLEMENT TRANSPOSE ADAPTIVE CODE
-			// Here allcoate unmanaged, cause we cannot use buffer offset in MPS
-			let buffers = SerranoResourceManager.globalManager.allocateUnmanagedMTLBuffers(tensors)
+		for (inputA, output) in zip(self.inputTensors![0..<self.inputTensors!.count-1], self.outputTensors!) {
+			// INPUT A
+			let inputABuffer = SerranoResourceManager.globalManager.allocateUnmanagedMTLBuffe(inputA)
+			let inputAMatrixDescript = MPSMatrixDescriptor(dimensions: inputA.shape.shapeArray[0], columns: inputA.shape.shapeArray[1],
+															rowBytes:  inputA.shape.shapeArray[1] * MemoryLayout<Float>.stride,
+															dataType: .float32)
+			let inputAMatrix = MPSMatrix(buffer: inputABuffer, descriptor: inputAMatrixDescript)
 			
-			// get matrix
-			var matrix = [MPSMatrix]()
-			for (tensor, buffer) in zip(tensors, buffers) {
-				let descript = MPSMatrixDescriptor(dimensions: tensor.shape.shapeArray[0], columns: tensor.shape.shapeArray[1],
-												   rowBytes:  tensor.shape.shapeArray[1] * MemoryLayout<Float>.stride,
-												   dataType: .float32)
-				matrix.append(MPSMatrix(buffer: buffer, descriptor: descript))
-			}
+			// output
+			let outputBuffer = SerranoResourceManager.globalManager.allocateUnmanagedMTLBuffe(output)
+			let outputMatrixDescript = MPSMatrixDescriptor(dimensions: output.shape.shapeArray[0], columns: output.shape.shapeArray[1],
+														   rowBytes:  output.shape.shapeArray[1] * MemoryLayout<Float>.stride,
+														   dataType: .float32)
+			let outputAMatrix = MPSMatrix(buffer: outputBuffer, descriptor: outputMatrixDescript)
 			
-			//kernel
+			// do calculation
+			let (M, N, K) = MNKFetch(tensorA: inputA, tensorB: inputB)
 			let kernel = MPSMatrixMultiplication(device: SerranoEngine.configuredEngine.GPUDevice!,
 												 transposeLeft: self.transposeA, transposeRight: self.transposeB,
-												 resultRows: tensors[2].shape.shapeArray[0], resultColumns: tensors[2].shape.shapeArray[1],
-												 interiorColumns: tensors[0].shape.shapeArray[1], alpha: 1, beta: 0)
+												 resultRows: M, resultColumns: N,
+												 interiorColumns: K, alpha: 1, beta: 0)
 			
 			let commandBuffer = SerranoEngine.configuredEngine.serranoCommandQueue!.makeCommandBuffer()
-			kernel.encode(commandBuffer: commandBuffer, leftMatrix: matrix[0], rightMatrix: matrix[1], resultMatrix: matrix[2])
+			kernel.encode(commandBuffer: commandBuffer, leftMatrix: inputAMatrix, rightMatrix: inputBMatrix, resultMatrix: outputAMatrix)
 			commandBuffer.commit()
-			let startTime = CFAbsoluteTimeGetCurrent()
 			commandBuffer.waitUntilCompleted()
-			let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-			
-			SerranoLogging.stdLogging(message: "Executed GPU calcualtion in \(timeElapsed) seconds.",
-				file: "\(#file)", function: "\(#function)", line: "\(#line)", loggingLevel: .LowLevel)
+		}
 		#endif
 	}
 	

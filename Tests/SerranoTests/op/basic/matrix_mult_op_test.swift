@@ -337,9 +337,9 @@ class MatriMultOpTest: XCTestCase {
 			var transposeB = false
 
 			// generate tensors
-			var dimRange: [Int] = [200, 400]
+			var dimRange: [Int] = [100, 110]
 			if i >= 8 {
-				dimRange = [1000, 1200]
+				dimRange = [800, 800]
 			}
 			
 			// generate valid
@@ -381,11 +381,15 @@ class MatriMultOpTest: XCTestCase {
 			delegate.veryfyTensors = inputTensors
 			delegate.transposeA = transposeA
 			delegate.transposeB = transposeB
+			
+			if i % 3 == 0 {
+				op.disabledMPS = true
+			}
 
 			if i % 2 == 0 {
 				print("Run CPU")
 				workGroup.enter()
-				op.computeAsync(.CPU)
+				op.computeAsync(.GPU)
 			} else {
 				if !SerranoEngine.configuredEngine.hasAvailableGPU() {
 					print("No available GPU, give up test.\n\n")

@@ -11,15 +11,6 @@ import Metal
 import Dispatch
 import Accelerate
 
-/// This struct corresponds to the `FCInfo` struct in file 'fullyconnected_op.metal'
-public struct FCInfo {
-	var M: MetalUInt // number of rows in A
-	var N: MetalUInt // number of cols in B
-	var K: MetalUInt // number of cols in A, number of rows in B
-	var stride: MetalUShort // element stride in bytes
-	var useBias: Bool // 1 - true, 0 - false
-}
-
 /**
 The regular fully connected operator.
 Operator do the `1D_dot(inputTensor.flatten, weights) + bias` calculation on all input tensors.
@@ -136,6 +127,9 @@ public class FullyconnectedOperator: ComputableOperator {
 			return OperatorMappingType.OneToOne
 		}
 	}
+	
+	/// If disable using MPS
+	public var disabledMPS: Bool = false
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializers
@@ -296,27 +290,36 @@ public class FullyconnectedOperator: ComputableOperator {
 			fatalError()
 		}
 		
-		self.computationDelegate?.operatorWillBeginComputation(self)
 		
-		switch computationMode {
-		case .GPU:
-			if !SerranoEngine.configuredEngine.hasAvailableGPU() {
-				SerranoLogging.warningLogging(message: "Serrano Engine has no available configured GPU device. Use CPU doing calculation instead.", file: "\(#file)", function: "\(#function)", line: "\(#line)")
-				self.cpu()
-			} else {
-				self.gpu()
-			}
-		case .CPU:
-			self.cpu()
-		case .Auto:
-			// TODO: More intelligent way to decide
-			if self.inputTensors![0].count > 1000000 && SerranoEngine.configuredEngine.hasAvailableGPU(){
-				self.gpu()
-			} else {
-				self.cpu()
-			}
+		// assign flattened shape
+		for (inTensor, outTensor) in zip(self.inputTensors!, self.outputTensors!) {
+			inTensor.shape = TensorShape(dataType: .float, shape: [1, inTensor.count])
+			outTensor.shape = TensorShape(dataType: .float, shape: [1, outTensor.count])
 		}
-		self.computationDelegate?.operatorDidEndComputation(self, outputTensors: self.outputTensors!)
+		
+		// mult
+		let matrixMultOp = MatrixMultOperator()
+		matrixMultOp.inputTensors = self.inputTensors!
+		matrixMultOp.inputTensors!.append(self.weight!)
+		matrixMultOp.outputTensors = self.outputTensors!
+		matrixMultOp.disableInputOutputCheck = true
+		matrixMultOp.compute(computationMode)
+		
+		// add bias
+		
+		if self.biasEnabled {
+			self.bias!.shape = TensorShape(dataType: .float, shape: [1, self.bias!.count])
+			for tensor in self.outputTensors! {
+				tensor &+ self.bias!
+			}
+			self.bias!.shape = TensorShape(dataType: .float, shape: [self.bias!.count])
+		}
+		
+		// assign back shapes
+		for (inTensor, outTensor) in zip(self.inputTensors!, self.outputTensors!) {
+			inTensor.shape = TensorShape(dataType: .float, shape: [inTensor.count])
+			outTensor.shape = TensorShape(dataType: .float, shape: [outTensor.count])
+		}
 	}
 	
 	/// Compute asynclly
@@ -329,7 +332,9 @@ public class FullyconnectedOperator: ComputableOperator {
 		OperatorUtils.delegateNilWarning(op: self, file: "\(#file)", function: "\(#function)", line: #line)
 		
 		DispatchQueue.global(qos: .userInitiated).async {
+			self.computationDelegate?.operatorWillBeginComputation(self)
 			self.compute(computationMode)
+			self.computationDelegate?.operatorDidEndComputation(self, outputTensors: self.outputTensors!)
 		}
 	}
 	
@@ -423,150 +428,4 @@ public class FullyconnectedOperator: ComputableOperator {
 
 		return [weight, bias]
 	}
-	
-	/// Just do the matrix multiplication between each inpute tensor and weight tensor.
-	/// Then add bias.
-	internal func cpu() {
-		let weightAddress = self.weight!.contentsAddress
-		let biasAddress = self.bias?.contentsAddress
-		
-		for (inputTensor, outputTensor) in zip(self.inputTensors!, self.outputTensors!) {
-			let inputAddress = inputTensor.contentsAddress
-			let outputAddress = outputTensor.contentsAddress
-			
-			// weights
-			let M = Int32(1)
-			let N = Int32(self.weight!.shape.shapeArray[1])
-			let K = Int32(inputTensor.count)
-			
-			let startTime = CFAbsoluteTimeGetCurrent()
-			
-			cblas_sgemm(CblasRowMajor, cblasTrans(false), cblasTrans(false), M, N, K,
-			            1.0, inputAddress, K, weightAddress, N, 0.0, outputAddress, N)
-			
-			// bias
-			if self.biasEnabled {
-				let count = vDSP_Length(outputTensor.count)
-				vDSP_vadd(outputAddress, 1, biasAddress!, 1, outputAddress, 1, count)
-			}
-			
-			let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-			SerranoLogging.stdLogging(message: "Executed CPU calcualtion in \(timeElapsed) seconds.",
-				file: "\(#file)", function: "\(#function)", line: "\(#line)", loggingLevel: .LowLevel)
-			
-			
-		}
-	}
-	
-	
-	/// We use op
-	/// TODO: This needs more optimization. clean code
-	internal func gpu() {
-		let workGroup = DispatchGroup()
-		let weightTensor = self.weight!
-		
-		// cal for each tensor
-		for (inputTensor, outputTensor) in zip(self.inputTensors!, self.outputTensors!) {
-			workGroup.enter()
-			DispatchQueue.global(qos: .userInitiated).async {
-				
-				// transpose weight
-				let transposeWeight = SerranoResourceManager.globalManager.allocateUnamangedTensor(weightTensor.shape.transposed())
-				let transOp = TransposeOperator(inputTensors: [weightTensor], outputTensors: [transposeWeight])
-				transOp.compute(.GPU)
-				
-				// prepare resources
-				let resourcePrepareGroup = DispatchGroup()
-				let engine = SerranoEngine.configuredEngine
-				var kernel: MTLComputePipelineState?
-				var commandBuffer: MTLCommandBuffer?
-				var dataBuffers: [MTLBufferResource] =  [MTLBufferResource]()
-				var infoBuffer: MTLBuffer?
-				
-				// kernel
-				resourcePrepareGroup.enter()
-				DispatchQueue.global(qos: .userInitiated).async {
-					var info = ""
-					(kernel, info) = engine.loadGPUKernel(kernelLabel: self.metalKernelFuncLabel)
-					guard kernel != nil else {
-						fatalError("[Serrano] Failed to load kernel \(self.metalKernelFuncLabel). Info: \(info)")
-					}
-					resourcePrepareGroup.leave()
-				}
-				
-				// command buffer
-				resourcePrepareGroup.enter()
-				DispatchQueue.global(qos: .userInitiated).async {
-					commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
-					guard commandBuffer != nil else {
-						fatalError("[Serrano] Failed to make new command buffer.")
-					}
-					resourcePrepareGroup.leave()
-				}
-				
-				//// Prepare MTLBuffers
-				resourcePrepareGroup.enter()
-				DispatchQueue.global(qos: .userInitiated).async {
-					if self.biasEnabled {
-						dataBuffers = SerranoResourceManager.globalManager.allocateMTLBufferResources([inputTensor, transposeWeight,
-						                                                                               outputTensor, self.bias!])
-					} else {
-						dataBuffers = SerranoResourceManager.globalManager.allocateMTLBufferResources([inputTensor, transposeWeight,
-							                                                                               outputTensor])
-					}
-					resourcePrepareGroup.leave()
-				}
-				
-				/// FCInfo buffer
-				/// Here, no matter what shape the input tensor has, we view it as a [1, count] matrix.
-				var info = FCInfo(M: MetalUInt(1),
-								  N: MetalUInt(weightTensor.shape.shapeArray[1]),
-								  K: MetalUInt(inputTensor.count),
-								  stride: MetalUShort(MemoryLayout<Float>.stride),
-								  useBias: self.biasEnabled)
-				infoBuffer = engine.GPUDevice?.makeBuffer(bytes: &info, length: MemoryLayout<FCInfo>.stride, options: .storageModeShared)
-				guard infoBuffer != nil else { fatalError("[Serrano] Failed to careate MTLBuffer.") }
-				SerranoLogging.stdLogging(message: "Allocated a Metal buffer [\(infoBuffer!.length) bytes] requested for matrix dimentsion info info \(info) by operator \(self.operatorLabel)",
-					file: "\(#file)", function: "\(#function)", line: "\(#line)",  loggingLevel: .LowLevel)
-				
-				resourcePrepareGroup.wait()
-				
-				//// Encoders.
-				let encoder = commandBuffer!.makeComputeCommandEncoder()
-				encoder.setComputePipelineState(kernel!)
-				encoder.setBuffer(dataBuffers[0].buffer, offset: dataBuffers[0].offset, at: 0)
-				encoder.setBuffer(dataBuffers[1].buffer, offset: dataBuffers[1].offset, at: 1)
-				encoder.setBuffer(dataBuffers[2].buffer, offset: dataBuffers[2].offset, at: 2)
-				if self.biasEnabled { encoder.setBuffer(dataBuffers[3].buffer, offset: dataBuffers[3].offset, at: 3) }
-				encoder.setBuffer(infoBuffer, offset: 0, at: 4)
-				/// Calculate grid
-				let threadsPerThreadgroup = MTLSizeMake(1,
-				                                        kernel!.threadExecutionWidth,
-				                                        1)
-				/// virew output tensor as a [1, numUnit] matrix
-				let threadgroupsPerGrid = MTLSizeMake(1,
-				                                    (outputTensor.shape.shapeArray[0] + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
-				                                      1)
-				encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-				SerranoLogging.stdLogging(message: "Dispatch group configured with threadgroupsPerGrid: \(threadgroupsPerGrid), threadsPerThreadgroup: \(threadsPerThreadgroup) requested by operator \(self.operatorLabel)",
-					file: "\(#file)", function: "\(#function)", line: "\(#line)",  loggingLevel: .LowLevel)
-				
-				encoder.endEncoding()
-				
-				// commit command buffer
-				commandBuffer!.commit()
-				
-				let startTime = CFAbsoluteTimeGetCurrent()
-				commandBuffer!.waitUntilCompleted()
-				let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-				SerranoLogging.stdLogging(message: "Executed GPU calcualtion in \(timeElapsed) seconds.",
-					file: "\(#file)", function: "\(#function)", line: "\(#line)", loggingLevel: .LowLevel)
-								
-				workGroup.leave()
-			}
-		}
-		
-		workGroup.wait()
-	}
-	
 }
