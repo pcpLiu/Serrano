@@ -9,6 +9,9 @@
 import Foundation
 import Accelerate
 import Metal 
+#if  !((arch(i386)  || arch(x86_64)) && os(iOS)) // prevent build error on simulaor
+	import MetalPerformanceShaders
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MARK:
@@ -1766,6 +1769,42 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 				file: "\(#file)", function: "\(#function)", line: "\(#line)")
 		return false
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// MARK: - MPS utils
+	
+	/// Get wrapped `MPSImage` from a 3D Tensor (including channel information)
+	///
+	/// - Note: If this is not a 3D tensor, `fatalError()` will be raised
+	///
+	/// - Parameter dataFormat: `TensorChannelOrder`
+	/// - Returns: `MPSImage`
+	@available(OSX 10.13, iOS 11.0, *)
+	public func getMPSImage(dataFormat: TensorChannelOrder) -> MPSImage {
+		#if  !((arch(i386)  || arch(x86_64)) && os(iOS))
+			guard SerranoEngine.configuredEngine.hasAvailableGPU() else {
+				SerranoLogging.errorLogging(message: "Trying to use MPS but no available GPU.",
+											file: "\(#file)", function: "\(#function)", line: "\(#line)")
+				fatalError("Raised by Serrano. Check log for detail")
+			}
+			
+			guard self.rank == 3 else {
+				SerranoLogging.errorLogging(message: "Trying to generate MPSImage from a tensor but with rank \(self.rank).",
+											file: "\(#file)", function: "\(#function)", line: "\(#line)")
+				fatalError("Raised by Serrano. Check log for detail")
+			}
+			
+			let (c, h, w) = parseImgChannelShapeInfo(dataFormat, shapeArray: self.shape.shapeArray)
+			let imgDescriptior = MPSImageDescriptor(channelFormat: MPSImageFeatureChannelFormat.float32,
+													width: w,
+													height: h,
+													featureChannels: c)
+			let mpsi = MPSImage(device: SerranoEngine.configuredEngine.GPUDevice!, imageDescriptor: imgDescriptior)
+			mpsi.readBytes(self._dataMemoryBaseAdrress, dataLayout: dataFormat.MPSImageOrder, imageIndex: 0)
+			return mpsi
+		#endif
+	}
+	
 }
 
 

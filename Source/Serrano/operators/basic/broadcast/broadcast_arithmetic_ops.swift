@@ -62,6 +62,9 @@ public class BroadcastArithmeticOperator: ComputableOperator {
 		}
 	}
 	
+	/// Broadcast operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializers
 	

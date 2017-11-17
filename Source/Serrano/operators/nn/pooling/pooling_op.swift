@@ -10,7 +10,9 @@ import Foundation
 import Metal
 import Dispatch
 import Accelerate
-
+#if  !((arch(i386)  || arch(x86_64)) && os(iOS)) // prevent build error on simulaor
+	import MetalPerformanceShaders
+#endif
 
 /// Mirror struct of `Pool2DInfo` in `pooling_op.metal`
 public struct Pool2DInfo {
@@ -96,6 +98,12 @@ public class Pooling2DOperator: ComputableOperator {
 			return OperatorMappingType.OneToOne
 		}
 	}
+	
+	/// Pool operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
+	
+	/// if disable MPS kernel
+	public var disabledMPS: Bool = false
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializers
@@ -333,6 +341,14 @@ public class Pooling2DOperator: ComputableOperator {
 	
 	/// GPU calculation
 	internal func gpu() {
+//		// Use MPS if possible
+//		if !self.disabledMPS && MetalHardwareChecker.supportMPS() {
+//			if #available(OSX 10.13, iOS 10.0, *) {
+//				self.gpu_kernel_MPS()
+//				return
+//			}
+//		}
+		
 		// prepare resources
 		let engine = SerranoEngine.configuredEngine
 		// kernel
@@ -375,6 +391,11 @@ public class Pooling2DOperator: ComputableOperator {
 		// commit command buffer
 		commandBuffer!.commit()
 		commandBuffer!.waitUntilCompleted()
+	}
+	
+	internal func gpu_kernel_MPS() {
+		//TODO: implement
+		fatalError()
 	}
 }
 

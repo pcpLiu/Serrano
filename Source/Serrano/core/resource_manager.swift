@@ -133,7 +133,7 @@ public class SerranoResourceManager {
 		var buffers = [MTLBuffer]()
 		for tensor in tensors {
 			let newBuffer = SerranoEngine.configuredEngine.GPUDevice!.makeBuffer(bytesNoCopy: tensor.contentsAddress,
-			                                                                     length: tensor.allocatedBytes,
+			                                                                     length: tensor.allocatedBytes.padded(alignmentSize: Int(getpagesize()))!,
 			                                                                     options: MTLResourceOptions.storageModeShared)
 			buffers.append(newBuffer)
 		}

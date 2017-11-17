@@ -65,9 +65,12 @@ public class UnaryOperator: ComputableOperator {
 			return OperatorMappingType.OneToOne
 		}
 	}
+	
+	/// Unary operator cannot do in-place calculation
+	public var inPlaceble: Bool = true
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+	// MARK: Init
     
     /// Designated init function
     ///
@@ -121,7 +124,7 @@ public class UnaryOperator: ComputableOperator {
 	}
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	// MARK: methods
     
     /// This operator would not do anything about shapes.
     /// Basically, it just return input shapes identically.

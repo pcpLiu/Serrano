@@ -123,6 +123,9 @@ public protocol ComputableOperator {
 	/// The mapping type of this operator
 	var mapType: OperatorMappingType {get}
 	
+	/// Indicate if this operator allows in-place operation.
+	var inPlaceble: Bool {get set}
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// MARK: - Computation realted methods (forward)
 	

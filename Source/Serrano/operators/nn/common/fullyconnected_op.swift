@@ -128,6 +128,9 @@ public class FullyconnectedOperator: ComputableOperator {
 		}
 	}
 	
+	/// fully connected operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
+	
 	/// If disable using MPS
 	public var disabledMPS: Bool = false
 	

@@ -58,6 +58,9 @@ public class BroadcastOperator: ComputableOperator {
 		}
 	}
 	
+	/// Broadcast operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializers
 	
@@ -104,11 +107,12 @@ public class BroadcastOperator: ComputableOperator {
 	/// Initializer
 	///
 	/// - Parameter targetShape: target broadcast shape
-	public convenience init(targetShape: TensorShape? = nil) {
+	public convenience init(targetShape: TensorShape? = nil,  inputTensors: [Tensor]? = nil,
+							outputTensors: [Tensor]? = nil) {
 		let defaultLabel = "BroadCastOp"
 		let kernelLabel = ""
 		self.init(operatorLabel: defaultLabel, metalKernelFuncLabel: kernelLabel, computationDelegate: nil,
-		          inputTensors: nil, outputTensors: nil, targetShape: targetShape)
+		          inputTensors: inputTensors, outputTensors: outputTensors, targetShape: targetShape)
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -73,6 +73,9 @@ public class ReduceOperator: ComputableOperator {
 		}
 	}
 	
+	/// Reduce operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializers
 	

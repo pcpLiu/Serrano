@@ -73,6 +73,9 @@ public class ConvOperator2D: ComputableOperator {
 		}
 	}
 	
+	/// conv operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
+	
 	/// The number of fitlers
 	public var numFilters: Int
 	
@@ -463,55 +466,54 @@ public class ConvOperator2D: ComputableOperator {
 		                                 shape: [originWeightShapeArray[0],
 		                                         originWeightShapeArray[1] * originWeightShapeArray[2] * originWeightShapeArray[3]])
 		
-		let workGroup = DispatchGroup()
 		for (input, output) in zip(self.inputTensors!, self.outputTensors!) {
-			workGroup.enter()
-			DispatchQueue.global(qos: .userInitiated).async {
-				// img2col
-				let img2colOP = Img2ColOperator(patchSize: self.kernelSize, stride: self.stride,
-				                                channelPosition: self.channelPosition,
-				                                padMode: self.padMode,
-				                                inputTensors: [input],
-				                                disableInputOutputCheck: true)
-				let outShape = img2colOP.outputShape(shapeArray: [input.shape])!.first!
-				let colTensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(outShape)
-				img2colOP.outputTensors = [colTensor]
-				img2colOP.compute(mode)
-				
-				// fake output tensor shape as a 2D shape
-				let outputShape = output.shape
-				output.shape = TensorShape(dataType: outputShape.dataType,
-				                           shape: [outputShape.shapeArray[0] * outputShape.shapeArray[1], outputShape.shapeArray[2]])
-				
-				// matrix mult
-				let matrixMultOp = MatrixMultOperator(transposeB: true,
-				                                      inputTensors: [colTensor, self.weight!],
-				                                      outputTensors: [output],
-				                                      disableInputOutputCheck: true)
-				matrixMultOp.compute(mode)
-				
-				// change back output tensor shape
-				output.shape = outputShape
-				
-				// bias adding if applicable
-				if self.biasEnabled {
-					for height_index in 0..<output.shape.shapeArray[0] {
-						for width_index in 0..<output.shape.shapeArray[1] {
-							// for each channel of output tensor, adding with bias tensor
-							let sliceIndex = [height_index, width_index]
-							let sliceTensor = output.slice(sliceIndex: sliceIndex)
-							let add = AddOperator(inputTensors: [sliceTensor, self.bias!], outputTensors: [sliceTensor])
-							add.disableInputOutputCheck = true
-							add.compute(.CPU)
-						}
-					}
-				}
-				
-				workGroup.leave()
+			// img2col
+			let img2colOP = Img2ColOperator(patchSize: self.kernelSize, stride: self.stride,
+											channelPosition: self.channelPosition,
+											padMode: self.padMode,
+											inputTensors: [input],
+											disableInputOutputCheck: true)
+			let outShape = img2colOP.outputShape(shapeArray: [input.shape])!.first!
+			let colTensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(outShape)
+			img2colOP.outputTensors = [colTensor]
+//			var start = CFAbsoluteTimeGetCurrent()
+			img2colOP.compute(mode)
+//			var calTime = CFAbsoluteTimeGetCurrent() - start
+//			print("Inside Conv Op... img2col Execution Time : \(calTime * 100) ms")
+			
+			if self.biasEnabled {
+				// broadcast bias to output
+				let broadCastOP = BroadcastOperator(targetShape: output.shape,
+													inputTensors: [self.bias!], outputTensors: [output])
+				broadCastOP.disableInputOutputCheck = true
+//				start = CFAbsoluteTimeGetCurrent()
+				broadCastOP.compute(mode)
+//				calTime = CFAbsoluteTimeGetCurrent() - start
+//				print("Inside Conv Op...broadCastOP Execution Time : \(calTime * 100) ms")
 			}
+			
+			// fake output tensor shape as a 2D shape
+			let outputShape = output.shape
+			output.shape = TensorShape(dataType: outputShape.dataType,
+									   shape: [outputShape.shapeArray[0] * outputShape.shapeArray[1], outputShape.shapeArray[2]])
+			
+			// matrix mult
+			let matrixMultOp = MatrixMultOperator(transposeB: true,
+												  inputTensors: [colTensor, self.weight!],
+												  outputTensors: [output],
+												  disableInputOutputCheck: true)
+			if self.biasEnabled {
+				matrixMultOp.matrixBeta = 1.0
+			}
+//			start = CFAbsoluteTimeGetCurrent()
+			matrixMultOp.compute(mode)
+//			calTime = CFAbsoluteTimeGetCurrent() - start
+//			print("Inside Conv Op... matrix mult Execution Time : \(calTime * 100) ms")
+			
+			// change back output tensor shape
+			output.shape = outputShape
 		}
-		workGroup.wait()
-		
+	
 		// change weight's shape info back
 		self.weight!.shape = TensorShape(dataType: self.weight!.shape.dataType, shape: originWeightShapeArray)
 	}

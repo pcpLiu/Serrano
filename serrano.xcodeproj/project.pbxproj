@@ -151,6 +151,8 @@
 		D45C53181EAD265F003D4488 /* metal_hardwares_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D45C53171EAD265E003D4488 /* metal_hardwares_test.swift */; };
 		D463B5951F965B80009004DB /* cov_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D463B5941F965B80009004DB /* cov_op_test.swift */; };
 		D463B5961F965B80009004DB /* cov_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D463B5941F965B80009004DB /* cov_op_test.swift */; };
+		D467731E1FBE072300DFB322 /* TinyYOLO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D467731D1FBE072300DFB322 /* TinyYOLO.swift */; };
+		D467731F1FBE072300DFB322 /* TinyYOLO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D467731D1FBE072300DFB322 /* TinyYOLO.swift */; };
 		D48F7E6B1F1E668F007CB3BF /* pad_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48F7E6A1F1E668F007CB3BF /* pad_op_test.swift */; };
 		D4A567811EA32AEC001CEA4E /* copy_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A567801EA32AEC001CEA4E /* copy_op_test.swift */; };
 		D4A5FB0C1EFD98D900919288 /* transpose_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A5FB0B1EFD98D900919288 /* transpose_op_test.swift */; };
@@ -450,6 +452,7 @@
 		D4614F191F71F8A2004264CD /* base_model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = base_model.swift; sourceTree = "<group>"; };
 		D4614F1B1F71F8F4004264CD /* sequential_model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sequential_model.swift; sourceTree = "<group>"; };
 		D463B5941F965B80009004DB /* cov_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cov_op_test.swift; sourceTree = "<group>"; };
+		D467731D1FBE072300DFB322 /* TinyYOLO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TinyYOLO.swift; sourceTree = "<group>"; };
 		D46E74471E971CF8001AEDBB /* serrano copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "serrano copy-Info.plist"; path = "/Users/lzhao/workSpace/serrano/serrano copy-Info.plist"; sourceTree = "<absolute>"; };
 		D48EF5201E7A1A95000C3C94 /* tensor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tensor.swift; sourceTree = "<group>"; };
 		D48EF5231E7B3BCF000C3C94 /* tensor_test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tensor_test.swift; sourceTree = "<group>"; };
@@ -1087,6 +1090,7 @@
 			isa = PBXGroup;
 			children = (
 				D44DF4791FA1174E0028198E /* VGG16.swift */,
+				D467731D1FBE072300DFB322 /* TinyYOLO.swift */,
 				D41857AB1FACF2960060B979 /* SimpleCNN.swift */,
 			);
 			path = Graph;
@@ -1628,6 +1632,7 @@
 				D44BC9A71F9ED5C8003D0956 /* sigmoid_op_test.swift in Sources */,
 				D4288F341F438EE900C95AB5 /* expm1_op_test.swift in Sources */,
 				D4288F221F438EE900C95AB5 /* radian_op_test.swift in Sources */,
+				D467731F1FBE072300DFB322 /* TinyYOLO.swift in Sources */,
 				D4288F1F1F438EE900C95AB5 /* arctan_op_test.swift in Sources */,
 				D44DF47D1FA1174E0028198E /* VGG16.swift in Sources */,
 				D4288F0F1F438EDF00C95AB5 /* broadcast_div_op_test.swift in Sources */,
@@ -1817,6 +1822,7 @@
 				D41692FB1EE796E3002E0BE1 /* log_op_test.swift in Sources */,
 				D41073381F3B8C5400F26C1F /* resource_manager_test.swift in Sources */,
 				D44BC9AD1F9ED5C8003D0956 /* leakyrelu_op_test.swift in Sources */,
+				D467731E1FBE072300DFB322 /* TinyYOLO.swift in Sources */,
 				D41692ED1EE78811002E0BE1 /* round_op_test.swift in Sources */,
 				D4244CF11F085B85000A4693 /* reduce_min_op_test.swift in Sources */,
 				D45AE6A61F3D49E10039B4E4 /* graph_symbol_test.swift in Sources */,
@@ -2090,6 +2096,7 @@
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Tests/SerranoMacTests/Info.plist;
@@ -2112,6 +2119,7 @@
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Tests/SerranoMacTests/Info.plist;

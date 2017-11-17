@@ -85,6 +85,9 @@ public class Img2ColOperator: ComputableOperator {
 		}
 	}
 	
+	/// img2col operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
+	
 	/// The patch size. 2D vecotr. `[patchHeight, patchWidth]`
 	public var patchSize: [Int]
 	

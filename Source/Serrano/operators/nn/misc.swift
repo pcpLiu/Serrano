@@ -7,7 +7,9 @@
 //
 
 import Foundation
-
+#if  !((arch(i386)  || arch(x86_64)) && os(iOS))
+	import MetalPerformanceShaders
+#endif
 
 /**
 Padding mode for operators involving with kernel calculation, like pooling and convolution operators.
@@ -74,6 +76,19 @@ public enum TensorChannelOrder: Int {
 	var description: String {
 		get { return String(reflecting: self) }
 	}
+	
+	#if  !((arch(i386)  || arch(x86_64)) && os(iOS))
+	@available(OSX 10.13, iOS 11.0, *)
+	var MPSImageOrder: MPSDataLayout {
+		get {
+			if self == .First {
+				return MPSDataLayout.featureChannelsxHeightxWidth
+			} else {
+				return MPSDataLayout.HeightxWidthxFeatureChannels
+			}
+		}
+	}
+	#endif
 }
 
 

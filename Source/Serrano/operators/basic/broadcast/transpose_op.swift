@@ -58,6 +58,8 @@ public class TransposeOperator: ComputableOperator {
 		}
 	}
 
+	/// Transpose operator cannot do in-place calculation
+	public var inPlaceble: Bool = false
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializers

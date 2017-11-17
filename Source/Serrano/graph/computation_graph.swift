@@ -85,6 +85,9 @@ public class ComputationGraph: Graph {
 	/// Counter of backward training
 	internal var _epoch: Int = 0
 	
+	/// Shared huge tensor
+	internal var _shareBigTensor: Tensor?
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializers
 	
@@ -318,6 +321,7 @@ public class ComputationGraph: Graph {
 		
 		// allocate tensors for needs
 		self.allocateAllTensors()
+//		self.allocateAllTensorsBigOne()
 		
 		// verify
 		let (valid, msg) = self.verifyGraph()
@@ -523,6 +527,35 @@ public class ComputationGraph: Graph {
 				var tensorSymbol = symbol as! TensorSymbol
 				if tensorSymbol.bindedData == nil {
 					tensorSymbol.bindedData = Tensor.randomTensor(tensorSymbol.shape)
+				}
+			}
+		}
+	}
+	
+	/// Allocate a huge tensor first that are `nil`
+	public func allocateAllTensorsBigOne() {
+		var total_count = 0
+		for symbol in self.dataSymbols() {
+			if symbol.symbolType == SymbolType.Tensor {
+				var tensorSymbol = symbol as! TensorSymbol
+				if tensorSymbol.bindedData == nil {
+					total_count += tensorSymbol.shape.count
+				}
+			}
+		}
+		
+		self._shareBigTensor = Tensor(repeatingValue: 0.0, tensorShape: TensorShape(dataType: .float, shape: [total_count, 1]))
+		
+		// assign
+		var preOccupied = 0
+		for symbol in self.dataSymbols() {
+			if symbol.symbolType == SymbolType.Tensor {
+				var tensorSymbol = symbol as! TensorSymbol
+				if tensorSymbol.bindedData == nil {
+					tensorSymbol.bindedData = self._shareBigTensor!.slice(sliceIndex: [preOccupied + tensorSymbol.shape.count - 1])
+					// we can chagne the sliced tensor shape cause slice tensor has a internal sliceIndex keep traking of its original shape from root tensor
+					tensorSymbol.bindedData!.tensorValue.shape = tensorSymbol.shape
+					preOccupied += tensorSymbol.shape.count
 				}
 			}
 		}

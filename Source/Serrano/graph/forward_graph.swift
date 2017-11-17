@@ -17,6 +17,174 @@ Thus, it has mooptimization during forward computation and the internal results 
 */
 public class ForwardGraph: ComputationGraph {
 	
+	
+//	/// Get shared calcualtion tensor size lsit for an operator
+//	///
+//	/// - Parameter opSymbol:
+//	/// - Returns:
+//	internal func shareCalTensorSizeList(_ opSymbol: OperatorSymbol) -> [Int] {
+//		var thisOpsSizeList = [Int]()
+//
+//		let inputCalSymbols = opSymbol.inputSymbols.filter {$0.dataSource == SymbolDataSource.Calculation}
+//		let inputCalSymbolsSizeList = inputCalSymbols.map {$0.shape.count}
+//
+//		let outputCalSymbols = (opSymbol.outBounds as! [TensorSymbol]).filter {$0.dataSource == SymbolDataSource.Calculation}
+//		let outputCalSymbolsSizeList = outputCalSymbols.map {$0.shape.count}
+//
+//		// share size list of this stage
+//		thisOpsSizeList.append(contentsOf: inputCalSymbolsSizeList)
+//		thisOpsSizeList.append(contentsOf: outputCalSymbolsSizeList)
+//
+//		// sorted from biggest to smallest
+//		thisOpsSizeList = thisOpsSizeList.sorted(by: <)
+//
+//		// If operator can do inplace operation, using same tensors for input and output
+//		if opSymbol.serranoOperator.inPlaceble {
+//			// get tensors needed
+//			let count = max(outputCalSymbolsSizeList.count, inputCalSymbolsSizeList.count)
+//			// get max size list
+//			thisOpsSizeList = Array(thisOpsSizeList.prefix(count))
+//		}
+//
+//		return thisOpsSizeList
+//	}
+//
+//	/**
+//	When allocate tensors for graph, this function will try best to reuse tensors for `TensorSymbol` whose
+//	`SymbolDataSource` is `Calculation`. And for input and output of same
+//	*/
+//	override public func allocateAllTensors() {
+//		// Calculation tensor of all
+//		var allCalTensorShareSizeList = [Int]()
+//
+//		// This list contains share size list for each stage
+//		var stagedCalTensorShareSizeList = [[Int]]()
+//
+//		// max calculation tensors needed among all stage
+//		var maxCalTensorsNeeded = 0
+//
+//		// Analyze each stage, decide how many share tensors needed
+//		// According to inPlaceble decides how manay calculation tensors we need for each stage
+//		for stage_index in self.symbolStages.keys.sorted() {
+//			// shared tensors size considering in-place situation
+//			var calShareSizeList = [Int]()
+//			let stageOps = self.symbolStages[stage_index]!.filter {$0.symbolType == SymbolType.Operator} as! [OperatorSymbol]
+//			for opSymbol in stageOps {
+//				let thisOpsSizeList = self.shareCalTensorSizeList(opSymbol)
+//				calShareSizeList.append(contentsOf: thisOpsSizeList)
+//			}
+//
+//			maxCalTensorsNeeded = max(maxCalTensorsNeeded, calShareSizeList.count)
+//
+//			allCalTensorShareSizeList.append(contentsOf: calShareSizeList)
+//
+//			stagedCalTensorShareSizeList.append(calShareSizeList)
+//
+//			print("################################")
+//			print("Stage ", stage_index)
+//			print("size list ", calShareSizeList)
+//			print("################################")
+//		}
+//
+//		////////////////////////////////////////////////////////
+//		////////////////////////////////////////////////////////
+//
+//		// Sort cal tensor list so that we can decid what size to allocate
+//		allCalTensorShareSizeList = Array(Set(allCalTensorShareSizeList.sorted(by: <)))
+//
+//
+//		// allocate biggest maxCalTensorsNeeded tensors with max sizes
+//		var sharedTensors = [Tensor]()
+//		for size in allCalTensorShareSizeList.suffix(maxCalTensorsNeeded) {
+//			sharedTensors.append(Tensor(repeatingValue: 0.0,
+//										tensorShape: TensorShape(dataType: .float, shape: [size])))
+//		}
+//		let sharedTensorSizeList = sharedTensors.map {$0.shape.count}
+//
+//		print("################################")
+//		for tensor in sharedTensors {
+//			print("Share tensor: ", tensor.description)
+//		}
+//		print("################################")
+//
+//
+//		////////////////////////////////////////////////////////
+//		////////////////////////////////////////////////////////
+//
+//		// asssing to cal symbols
+//		for stage_index in self.symbolStages.keys.sorted() {
+//			var occupiedIndex = [Int]()
+//			let stageOps = self.symbolStages[stage_index]!.filter {$0.symbolType == SymbolType.Operator} as! [OperatorSymbol]
+//			for opSymbol in stageOps {
+//				let inputCalSymbols = opSymbol.inputSymbols.filter {$0.dataSource == SymbolDataSource.Calculation}.sorted {(a,b) -> Bool in
+//					return a.shape.count > b.shape.count
+//				}
+//
+//				let outputCalSymbols = (opSymbol.outBounds as! [TensorSymbol]).filter {$0.dataSource == SymbolDataSource.Calculation}.sorted {(a,b) -> Bool in
+//					return a.shape.count > b.shape.count
+//				}
+//
+//
+//				// assign input
+//				var inputOccupiedIndex = [Int]()
+//				for symbol in inputCalSymbols {
+//					if symbol.bindedData != nil {
+//						let index = sharedTensorSizeList.index {$0 >= symbol.shape.count}!
+//						inputOccupiedIndex.append(index)
+//						continue
+//					}
+//
+//					var tensorSymbol = symbol
+//					var index = sharedTensorSizeList.index {$0 >= symbol.shape.count}!
+//					while occupiedIndex.contains(index) {
+//						index += 1
+//					}
+//					tensorSymbol.bindedData = sharedTensors[index]
+//					occupiedIndex.append(index)
+//					inputOccupiedIndex.append(index)
+//				}
+//
+//				// assign output
+//				for (i, symbol) in outputCalSymbols.enumerated() {
+//					if symbol.bindedData != nil {
+//						continue
+//					}
+//
+//					var tensorSymbol = symbol
+//					var index = sharedTensorSizeList.index {$0 >= symbol.shape.count}!
+//					if opSymbol.serranoOperator.inPlaceble &&  i < inputOccupiedIndex.count {
+//						tensorSymbol.bindedData = sharedTensors[inputOccupiedIndex[i]]
+//					} else {
+//						while occupiedIndex.contains(index) || (inputCalSymbols.filter {$0.bindedData!.tensorValue == sharedTensors[index]}.count > 0) {
+//							index += 1
+//						}
+//						tensorSymbol.bindedData = sharedTensors[index]
+//						occupiedIndex.append(index)
+//					}
+//				}
+//			}
+//		}
+//
+//		// allocate param symbols .!!super!!
+//		super.allocateAllTensors()
+//
+//		for stage_index in self.symbolStages.keys.sorted() {
+//			let stageOps = self.symbolStages[stage_index]!.filter {$0.symbolType == SymbolType.Operator} as! [OperatorSymbol]
+//			print("Stage: ", stage_index)
+//			for opSymbol in stageOps {
+//				print("Op:", opSymbol.serranoOperator.operatorLabel)
+//				for inputSymbol in (opSymbol.inputSymbols.filter {$0.dataSource == SymbolDataSource.Calculation}) {
+//					print("Cal inputSymbol, ", inputSymbol.UID,", shape:", inputSymbol.shape, ", binded", inputSymbol.bindedData!.description)
+//				}
+//				for outputSymbol in ((opSymbol.outBounds as! [TensorSymbol]).filter {$0.dataSource == SymbolDataSource.Calculation}) {
+//					print("Cal outputSymbol, ", outputSymbol.UID,", shape:", outputSymbol.shape, ", binded", outputSymbol.bindedData!.description)
+//				}
+//
+//			}
+//			print("################################")
+//		}
+//	}
+	
 	/**
 	When allocate tensors for graph, this function will try best to reuse tensors for `TensorSymbol` whose
 	`SymbolDataSource` is `Calculation`
@@ -160,7 +328,11 @@ public class ForwardGraph: ComputationGraph {
 							}
 						}
 						
+//						let start = CFAbsoluteTimeGetCurrent()
 						opSymbol.serranoOperator.compute(mode)
+//						let calTime = CFAbsoluteTimeGetCurrent() - start
+//						print("Op \(opSymbol.serranoOperator.operatorLabel) Execution Time : \(calTime * 100) ms")
+//						print("====================================")
 						stageWorkGroup.leave()
 					}
 				}
@@ -168,8 +340,5 @@ public class ForwardGraph: ComputationGraph {
 			// wait all complete in this stage
 			stageWorkGroup.wait()
 		}
-		
-		SerranoLogging.stdLogging(message: "Finish forward for graph \(self.graphLabel) in \(CFAbsoluteTimeGetCurrent() - begginTime) seconds ",
-			file: "\(#file)", function: "\(#function)", line: "\(#line)", loggingLevel: SerranoLoggingType.LowLevel)
 	}
 }

@@ -74,6 +74,9 @@ public class BinaryOperator: ComputableOperator {
 		}
 	}
 	
+	/// Binary operator can do in-place calculation
+	public var inPlaceble: Bool = true
+	
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - Initializers
     

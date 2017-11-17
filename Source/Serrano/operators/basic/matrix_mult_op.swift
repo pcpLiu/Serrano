@@ -95,8 +95,14 @@ public class MatrixMultOperator: ComputableOperator {
 		}
 	}
 	
+	/// Matrix multiplication cannot do in-place calculation 
+	public var inPlaceble: Bool = false
+	
 	/// If use MPS. Default is `false`
 	internal var disabledMPS: Bool = false
+	
+	/// beta for mstrix calculation, if want to add into output tensor, set this to 1
+	internal var matrixBeta: Float = 0.0
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Initializer
@@ -340,21 +346,17 @@ public class MatrixMultOperator: ComputableOperator {
 		let inputBAddress = inputB.contentsAddress
 		
 		for (input, output) in zip(self.inputTensors!, self.outputTensors!) {
-			workGroup.enter()
-			DispatchQueue.global(qos: .userInitiated).async {
-				let inputAAddress = input.contentsAddress
-				let outCAddress = output.contentsAddress
-				
-				let (M, N, K) = self.MNKFetch(tensorA: input, tensorB: inputB)
-				
-				let lda = Int32(input.shape.shapeArray[1])
-				let ldb = Int32(inputB.shape.shapeArray[1])
-				let ldc = Int32(output.shape.shapeArray[1])
-				
-				cblas_sgemm(CblasRowMajor, cblasTrans(self.transposeA), cblasTrans(self.transposeB), Int32(M), Int32(N), Int32(K),
-				            1.0, inputAAddress, lda, inputBAddress, ldb, 0.0, outCAddress, ldc)
-				workGroup.leave()
-			}
+			let inputAAddress = input.contentsAddress
+			let outCAddress = output.contentsAddress
+			
+			let (M, N, K) = self.MNKFetch(tensorA: input, tensorB: inputB)
+			
+			let lda = Int32(input.shape.shapeArray[1])
+			let ldb = Int32(inputB.shape.shapeArray[1])
+			let ldc = Int32(output.shape.shapeArray[1])
+			
+			cblas_sgemm(CblasRowMajor, cblasTrans(self.transposeA), cblasTrans(self.transposeB), Int32(M), Int32(N), Int32(K),
+						1.0, inputAAddress, lda, inputBAddress, ldb, self.matrixBeta, outCAddress, ldc)
 		}
 		workGroup.wait()
 	}
@@ -577,7 +579,7 @@ public class MatrixMultOperator: ComputableOperator {
 			let kernel = MPSMatrixMultiplication(device: SerranoEngine.configuredEngine.GPUDevice!,
 												 transposeLeft: self.transposeA, transposeRight: self.transposeB,
 												 resultRows: M, resultColumns: N,
-												 interiorColumns: K, alpha: 1, beta: 0)
+												 interiorColumns: K, alpha: 1, beta: Double(self.matrixBeta))
 			
 			let commandBuffer = SerranoEngine.configuredEngine.serranoCommandQueue!.makeCommandBuffer()
 			kernel.encode(commandBuffer: commandBuffer, leftMatrix: inputAMatrix, rightMatrix: inputBMatrix, resultMatrix: outputAMatrix)
