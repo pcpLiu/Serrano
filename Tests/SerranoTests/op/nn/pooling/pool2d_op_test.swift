@@ -305,9 +305,13 @@ class Pool2DOperatorTest<Op: Pooling2DOperator, Delegate: OperatorDelegateConvPo
 			
 			// decide input shape
 			let channel = randomInt([1, 4])
-			var inputShape = TensorShape(dataType: .int, shape: [randomInt([10, 20]), randomInt([10, 20]), channel])
+			var size = [10, 20]
+			if i >= 8 {
+				size = [500, 500]
+			}
+			var inputShape = TensorShape(dataType: .int, shape: [randomInt(size), randomInt(size), channel])
 			if channelOrder == TensorChannelOrder.First {
-				inputShape = TensorShape(dataType: .int, shape: [channel, randomInt([10, 20]), randomInt([10, 20])])
+				inputShape = TensorShape(dataType: .int, shape: [channel, randomInt(size), randomInt(size)])
 			}
 			
 			// generate input tensors

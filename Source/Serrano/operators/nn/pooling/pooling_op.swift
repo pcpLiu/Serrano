@@ -378,8 +378,8 @@ public class Pooling2DOperator: ComputableOperator {
 			/// Calculate grid
 			let (channel, outHeight, outWidth) = parseImgChannelShapeInfo(self.channelPosition,
 																		  shapeArray: input.shape.shapeArray)
-			let threadsPerThreadgroup = MTLSizeMake(16,
-													Int(Float(kernel!.threadExecutionWidth / 16).rounded(FloatingPointRoundingRule.up)), // incase threadExecutionWidth is very samll
+			let threadsPerThreadgroup = MTLSizeMake(kernel!.threadExecutionWidth,
+													kernel!.maxTotalThreadsPerThreadgroup / kernel!.threadExecutionWidth,
 													1)
 			let threadgroupsPerGrid = MTLSizeMake((outWidth + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
 												  (outHeight + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,

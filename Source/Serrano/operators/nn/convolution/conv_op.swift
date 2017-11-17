@@ -11,7 +11,58 @@ import Metal
 import Dispatch
 import Accelerate
 
-// TODO: figure out if needs inputshape for same on all inputs
+/// Corresponding struct of `ConvInfo` in Metal files
+public struct ConvInfo {
+	var channelPosition: MetalShort
+	var paddingMode: MetalShort
+	var paddingValue: MetalFloat
+	var inChannels: MetalInt
+	var inputWidth: MetalInt
+	var inputHeight: MetalInt
+	var outChannels: MetalInt
+	var outputWidth: MetalInt
+	var outputHeight: MetalInt
+	var strideWidth: MetalInt
+	var strideHeight: MetalInt
+	var kernelWidth: MetalInt
+	var kernelHeight: MetalInt
+	
+	
+	/// Create a `ConvInfo` struct from inptu information
+	///
+	/// - Parameters:
+	///   - convOp: operator
+	///   - input: input tensor
+	///   - output: output tensor
+	/// - Returns: `ConvInfo`
+	public static func makeConvInfo(convOp: ConvOperator2D, input: Tensor, output: Tensor) -> ConvInfo {
+		let (inChannel, inHeight, inWidth) = parseImgChannelShapeInfo(convOp.channelPosition, shapeArray: input.shape.shapeArray)
+		let (outChannel, outHeight, outWidth) = parseImgChannelShapeInfo(TensorChannelOrder.Last, shapeArray: output.shape.shapeArray)
+		
+		return ConvInfo(channelPosition: convOp.channelPosition.rawValue.metalShort,
+						paddingMode: convOp.padMode.rawValue.metalShort,
+						paddingValue: convOp.paddingValue.metalFloat,
+						inChannels: inChannel.metalInt,
+						inputWidth: inWidth.metalInt,
+						inputHeight: inHeight.metalInt,
+						outChannels: outChannel.metalInt,
+						outputWidth: outWidth.metalInt,
+						outputHeight: outHeight.metalInt,
+						strideWidth: convOp.stride[1].metalInt,
+						strideHeight: convOp.stride[0].metalInt,
+						kernelWidth: convOp.kernelSize[1].metalInt,
+						kernelHeight: convOp.kernelSize[0].metalInt)
+	}
+}
+
+/// Convolution calculation method
+///
+/// - Img2Col: img2col
+/// - Naive: naive
+public enum ConvMethod {
+	case Img2Col
+	case Naive
+}
 
 /**
 2D Convolution operator.
@@ -110,6 +161,12 @@ public class ConvOperator2D: ComputableOperator {
 	/// Used to indicate the input tensors' shape.
 	/// Should not be `nil` construction from scratch.
 	public var inputShape: TensorShape?
+	
+	/// Calculation method
+	public var calMethod: ConvMethod = ConvMethod.Naive
+	
+	/// Padding value when using Same mode
+	public var paddingValue: Float = 0.0
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MARK: - Init
@@ -440,7 +497,11 @@ public class ConvOperator2D: ComputableOperator {
 			self.cpu_dilation()
 		}
 	
-		regular(OperatorComputationMode.CPU)
+		if self.calMethod == ConvMethod.Img2Col {
+			self.img2Col(OperatorComputationMode.CPU)
+		} else {
+			self.naive(OperatorComputationMode.CPU)
+		}
 	}
 	
 	/// GPU calcualtion
@@ -450,7 +511,133 @@ public class ConvOperator2D: ComputableOperator {
 			self.gpu_dilation()
 		}
 		
-		regular(OperatorComputationMode.GPU)
+		if self.calMethod == ConvMethod.Img2Col {
+			self.img2Col(OperatorComputationMode.GPU)
+		} else {
+			self.naive(OperatorComputationMode.GPU)
+		}
+	}
+	
+	
+	/// Calculate the convolution following naive algorithm
+	///
+	/// - Parameter mode: mode
+	internal func naive(_ mode: OperatorComputationMode) {
+		if mode == .CPU {
+			for (input, output) in zip(self.inputTensors!, self.outputTensors!) {
+				self.naive_cpu(input: input, output: output)
+			}
+		} else {
+			// get weight buffer
+			let weightBuffer = self.weight!.gpuBufferResource()
+			var biasBuffer: MTLBufferResource? = nil
+			if self.biasEnabled {
+				biasBuffer = self.bias!.gpuBufferResource()
+			}
+			for (input, output) in zip(self.inputTensors!, self.outputTensors!) {
+				self.naive_gpu(input: input, output: output, weightBuffer: weightBuffer, biasBuffer: biasBuffer)
+			}
+		}
+	}
+	
+	
+	/// Naive gpu calcualtion. No intermediate tensor created
+	///
+	/// - Parameters:
+	///   - input:
+	///   - output:
+	///   - weightBuffer:
+	///   - biasBuffer:
+	internal func naive_gpu(input: Tensor, output: Tensor, weightBuffer: MTLBufferResource, biasBuffer: MTLBufferResource?) {
+		
+		let (kernel, msg) = SerranoEngine.configuredEngine.loadGPUKernel(kernelLabel: "conv2d_naive")
+		guard kernel != nil else {
+			SerranoLogging.errorLogging(message: "Failed to load kernel [conv2d_naive]. msg: \(msg) ",
+				file: "\(#file)", function: "\(#function)", line: "\(#line)")
+			fatalError("Fatal error raised by Serrano. Check log for detail.")
+		}
+		
+		
+		let inputBuffer = input.gpuBufferResource()
+		let outputBuffer = output.gpuBufferResource()
+		
+		let commandBuffer = SerranoEngine.configuredEngine.serranoCommandQueue!.makeCommandBuffer()
+		let encoder = commandBuffer.makeComputeCommandEncoder()
+		encoder.setComputePipelineState(kernel!)
+		encoder.setBuffer(inputBuffer.buffer, offset: inputBuffer.offset, at: 0)
+		encoder.setBuffer(outputBuffer.buffer, offset: outputBuffer.offset, at: 1)
+		encoder.setBuffer(weightBuffer.buffer, offset: weightBuffer.offset, at: 2)
+		
+		var convInfo = ConvInfo.makeConvInfo(convOp: self, input: input, output: output)
+		encoder.setBytes(&convInfo, length: MemoryLayout<ConvInfo>.stride, at: 4)
+		
+		if self.biasEnabled {
+			encoder.setBuffer(biasBuffer!.buffer, offset: biasBuffer!.offset, at: 3)
+		} else {
+			var zeroBias: [Float] = Array(repeating: Float(0.0), count: Int(convInfo.outChannels))
+			encoder.setBytes(&zeroBias, length: MemoryLayout<Float>.stride * zeroBias.count, at: 3)
+		}
+		
+		
+		let (outChannel, outHeight, outWidth) = parseImgChannelShapeInfo(TensorChannelOrder.Last, shapeArray: output.shape.shapeArray)
+		let threadsPerThreadgroup = MTLSizeMake(kernel!.threadExecutionWidth,
+												kernel!.maxTotalThreadsPerThreadgroup / kernel!.threadExecutionWidth,
+												1)
+		let threadgroupsPerGrid = MTLSizeMake((outWidth + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
+											  (outHeight + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
+											  outChannel)
+		encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+		encoder.endEncoding()
+		commandBuffer.commit()
+		commandBuffer.waitUntilCompleted()
+	}
+	
+	/// Naive CPU calculation
+	///
+	/// - Parameters:
+	///   - input: input
+	///   - output: output
+	internal func naive_cpu(input: Tensor, output: Tensor) {
+		// get input information
+		let (channel, inHeight, inWidth) = parseImgChannelShapeInfo(self.channelPosition,
+																	shapeArray: input.shape.shapeArray)
+		
+		// out  bounary
+		let outHeight = kernelScanningOutSize(self.padMode, inputSize: inHeight,
+											  kernelSize: self.kernelSize[0], stride: self.stride[0])
+		let outWidth = kernelScanningOutSize(self.padMode, inputSize: inWidth,
+											 kernelSize: self.kernelSize[1], stride: self.stride[1])
+		
+		
+		// calculate
+		for h in 0..<outHeight {
+			for w in 0..<outWidth {
+				for x in 0..<kernelSize[0] {
+					for y in 0..<kernelSize[1] {
+						for n in 0..<self.numFilters {
+							for c in 0..<channel {
+								if self.channelPosition == .First {
+									output[h, w, n] += input.fetchValueOrDefault([c, h*stride[0]+x, w*stride[1]+y], missingValue: Float(0.0)) * self.weight![n, c, x, y]
+								} else {
+									output[h, w, n] += input.fetchValueOrDefault([h*stride[0]+x, w*stride[1]+y, c], missingValue: Float(0.0)) * self.weight![n, c, x, y]
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		// bias
+		if self.biasEnabled {
+			for h in 0..<outHeight {
+				for w in 0..<outWidth {
+					for c in 0..<self.numFilters {
+						output[h, w, c] += self.bias![c]
+					}
+				}
+			}
+		}
 	}
 	
 	/// Use Img2Col to calcualte result.
@@ -459,7 +646,7 @@ public class ConvOperator2D: ComputableOperator {
 	/// 3. Do matrix multiplication `AxB` with `transposeB` setting as `true`.
 	///
 	/// - Parameter mode: computation mode
-	internal func regular(_ mode: OperatorComputationMode) {
+	internal func img2Col(_ mode: OperatorComputationMode) {
 		// temp make weight's shape 2D faking it as a 2D tensor
 		let originWeightShapeArray = self.weight!.shape.shapeArray
 		self.weight!.shape = TensorShape(dataType: self.weight!.shape.dataType,
@@ -476,20 +663,14 @@ public class ConvOperator2D: ComputableOperator {
 			let outShape = img2colOP.outputShape(shapeArray: [input.shape])!.first!
 			let colTensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(outShape)
 			img2colOP.outputTensors = [colTensor]
-//			var start = CFAbsoluteTimeGetCurrent()
 			img2colOP.compute(mode)
-//			var calTime = CFAbsoluteTimeGetCurrent() - start
-//			print("Inside Conv Op... img2col Execution Time : \(calTime * 100) ms")
 			
 			if self.biasEnabled {
 				// broadcast bias to output
 				let broadCastOP = BroadcastOperator(targetShape: output.shape,
 													inputTensors: [self.bias!], outputTensors: [output])
 				broadCastOP.disableInputOutputCheck = true
-//				start = CFAbsoluteTimeGetCurrent()
 				broadCastOP.compute(mode)
-//				calTime = CFAbsoluteTimeGetCurrent() - start
-//				print("Inside Conv Op...broadCastOP Execution Time : \(calTime * 100) ms")
 			}
 			
 			// fake output tensor shape as a 2D shape
@@ -505,10 +686,7 @@ public class ConvOperator2D: ComputableOperator {
 			if self.biasEnabled {
 				matrixMultOp.matrixBeta = 1.0
 			}
-//			start = CFAbsoluteTimeGetCurrent()
 			matrixMultOp.compute(mode)
-//			calTime = CFAbsoluteTimeGetCurrent() - start
-//			print("Inside Conv Op... matrix mult Execution Time : \(calTime * 100) ms")
 			
 			// change back output tensor shape
 			output.shape = outputShape

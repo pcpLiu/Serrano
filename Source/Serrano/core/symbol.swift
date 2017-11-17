@@ -321,7 +321,7 @@ extension OperatorSymbol {
 	public func evaluate(_ mode: OperatorComputationMode = .GPU) -> [DataSymbolSupportedDataType]? {
 		let graph = self.generateOutputGraph()
 		graph.forward(mode: mode)
-		return self.serranoOperator.outputTensors! as! [DataSymbolSupportedDataType]
+		return self.serranoOperator.outputTensors! as [DataSymbolSupportedDataType]
 	}
 	
 	/// Add to `paramSymbols`

@@ -19,6 +19,7 @@ public struct MatrixDimInfo {
 	var N: MetalUInt // number of cols in B
 	var K: MetalUInt // number of cols in A, number of rows in B
 	var stride: MetalUShort // element stride in bytes
+	var beta: MetalFloat // scale of output
 }
 
 
@@ -454,7 +455,7 @@ public class MatrixMultOperator: ComputableOperator {
 					transOp.compute(.GPU)
 					
 					let (M,N,K) = self.MNKFetch(tensorA: inputA, tensorB: self.inputTensors!.last!) // here use raw inputA, inputB to get M,N,K
-					var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride))
+					var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride), beta: self.matrixBeta.metalFloat)
 					self.gpu_single(inputABuffer: transA.gpuBufferResource(), inputBBufferTransposed: inputBBufferTransposed,
 					                outputCBuffer: output.gpuBufferResource(), dimInfo: &info, kernel: kernel!)
 					workGroup.leave()
@@ -465,7 +466,7 @@ public class MatrixMultOperator: ComputableOperator {
 				workGroup.enter()
 				DispatchQueue.global(qos: .userInitiated).async {
 					let (M,N,K) = self.MNKFetch(tensorA: inputA, tensorB: self.inputTensors!.last!) // here use raw inputB to get M,N,K
-					var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride))
+					var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride), beta: self.matrixBeta.metalFloat)
 					self.gpu_single(inputABuffer: inputA.gpuBufferResource(), inputBBufferTransposed: inputBBufferTransposed,
 					                outputCBuffer: output.gpuBufferResource(), dimInfo: &info, kernel: kernel!)
 					workGroup.leave()
@@ -538,7 +539,7 @@ public class MatrixMultOperator: ComputableOperator {
 			workGroup.enter()
 			DispatchQueue.global(qos: .userInitiated).async {
 				let (M,N,K) = self.MNKFetch(tensorA: inputA, tensorB: self.inputTensors!.last!) // here use raw inputA and inputB to get M,N,K
-				var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride))
+				var info = MatrixDimInfo(M: MetalUInt(M), N: MetalUInt(N), K: MetalUInt(K), stride: MetalUShort(MemoryLayout<Float>.stride), beta: self.matrixBeta.metalFloat)
 				self.gpu_submatrix(inputATransposeBuffer: inputA.gpuBufferResource(), inputBBuffer: inputBBuffer,
 								   outputCBuffer: output.gpuBufferResource(),
 				                   dimInfo: &info, kernel: kernel!)

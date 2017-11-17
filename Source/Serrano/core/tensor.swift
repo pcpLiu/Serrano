@@ -1779,9 +1779,9 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 	///
 	/// - Parameter dataFormat: `TensorChannelOrder`
 	/// - Returns: `MPSImage`
+	#if  !((arch(i386)  || arch(x86_64)) && os(iOS))
 	@available(OSX 10.13, iOS 11.0, *)
 	public func getMPSImage(dataFormat: TensorChannelOrder) -> MPSImage {
-		#if  !((arch(i386)  || arch(x86_64)) && os(iOS))
 			guard SerranoEngine.configuredEngine.hasAvailableGPU() else {
 				SerranoLogging.errorLogging(message: "Trying to use MPS but no available GPU.",
 											file: "\(#file)", function: "\(#function)", line: "\(#line)")
@@ -1802,8 +1802,8 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 			let mpsi = MPSImage(device: SerranoEngine.configuredEngine.GPUDevice!, imageDescriptor: imgDescriptior)
 			mpsi.readBytes(self._dataMemoryBaseAdrress, dataLayout: dataFormat.MPSImageOrder, imageIndex: 0)
 			return mpsi
-		#endif
 	}
+	#endif
 	
 }
 

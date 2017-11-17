@@ -7,7 +7,9 @@
 //
 
 #include <metal_stdlib>
+
 using namespace metal;
+#include "Source/Serrano/utils/serrano_misc.h"
 
 typedef struct {
 	short channelPosition; // 0 --> First, 1 --> Last
@@ -22,28 +24,6 @@ typedef struct {
 	int patchWidth;
 	int patchHeight;
 } Img2ColInfo;
-
-/// Get channel from input
-enum ChannelPosition {First, Last};
-ChannelPosition getChannelPosition(int channelPosition);
-ChannelPosition getChannelPosition(int channelPosition) {
-	ChannelPosition pos = First;
-	if (channelPosition == 1) {
-		pos = Last;
-	}
-	return pos;
-}
-
-/// Get padding mode
-enum PaddingMode {Valid, Same};
-PaddingMode getPaddingMode(int paddingMode);
-PaddingMode getPaddingMode(int paddingMode) {
-	PaddingMode mode = Valid;
-	if (paddingMode == 1) {
-		mode = Same;
-	}
-	return mode;
-}
 
 /// Each thread copy one value
 void kernel Img2col (constant float*       input           [[ buffer(0) ]],
@@ -103,3 +83,4 @@ void kernel Img2col (constant float*       input           [[ buffer(0) ]],
 		output[outputOffset] = input[inputOffset];
 	}
 }
+

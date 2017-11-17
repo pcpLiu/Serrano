@@ -16,6 +16,7 @@ typedef struct
 	uint N; 	 // number of cols in B
 	uint K; 	 // number of cols in A, number of rows in B
 	ushort stride;         // Element stride in bytes
+	float beta; // scale of output
 } MatrixDimInfo;
 
 kernel void MatrixMult_Single(constant float*       input_A    [[ buffer(0) ]],
@@ -31,7 +32,7 @@ kernel void MatrixMult_Single(constant float*       input_A    [[ buffer(0) ]],
 	if (gid.x >= M || gid.y >= N) return;
 	
 	device float* c_reader = (device float*)((device char*)C + gid.x * N * stride + gid.y * stride);
-	c_reader[0] = 0.0f;
+	c_reader[0] = dims.beta * c_reader[0];
 
 	// small case
 	if (K < 4) {
@@ -114,7 +115,7 @@ kernel void MatrixMult_submatrix(constant float*  input_A    [[ buffer(0) ]], //
 	for (int out_row_index = 0; out_row_index < row_bound; out_row_index++) {
 		for (int out_col_index = 0; out_col_index < col_bound; out_col_index++) {
 //			c_reader[out_col_index] = output_c[out_row_index*SUBMATRIX_SIZE + out_col_index];
-			c_reader[out_col_index] = output_c_m[out_row_index][out_col_index];
+			c_reader[out_col_index] = output_c_m[out_row_index][out_col_index] + dims.beta * c_reader[out_col_index];
 		}
 		// skip row
 		c_reader = (device float*)((device char*)c_reader + N * stride);
