@@ -106,6 +106,7 @@ func configureGraph() -> ForwardGraph {
 
 	let (out_poo6, _, _) = g.operation(inputs: out_act6,
 									   op: MaxPool2DOperator(kernelSize: [2, 2],
+															 stride: [1, 1],
 															 channelPosition: TensorChannelOrder.Last,
 															 paddingMode: PaddingMode.Same))
 
@@ -137,9 +138,6 @@ func configureGraph() -> ForwardGraph {
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
 														  inputShape: out_act8.first!.shape))
-
-	print(out_conv9.first!.shape)
-
 	return g
 }
 

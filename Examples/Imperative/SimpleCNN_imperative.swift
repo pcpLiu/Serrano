@@ -28,12 +28,13 @@ class SimpleCNN_imperative: XCTestCase {
         let inputTensor = randomTensor(fromShape: TensorShape(dataType: .float, shape: [244, 244, 3]))
 		
 		// conv
-		let convOp = ConvOperator2D(numFilters: 96,
+		let convOp = ConvOperator2D(numFilters: 20,
 									kernelSize: [11,11],
 									stride: [4, 4],
 									padMode: PaddingMode.Valid,
 									channelPosition: TensorChannelOrder.Last,
-									weight: randomTensor(fromShape: TensorShape(dataType: .float, shape: [96, 3, 11, 11])))
+									weight: randomTensor(fromShape: TensorShape(dataType: .float, shape: [20, 3, 11, 11])),
+									bias: randomTensor(fromShape: TensorShape(dataType: .float, shape: [20])))
 		
 		// Initialize a tensor object to store convOp's result.
 		// In serrano, operator cannot allocate memeory for output tensors so that it can control memory allcoation precisely.

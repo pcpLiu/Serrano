@@ -668,7 +668,7 @@ class TensorTest: XCTestCase {
 				for index in 0..<result.count {
 					let val = verifyTensorReader[index]
 					if val.isInfinite || val.isNaN {continue}
-					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: 0.0001)
+					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: abs(val*0.001))
 				}
 			} else if i % 4 == 1 {
 				// substract
@@ -682,7 +682,7 @@ class TensorTest: XCTestCase {
 				for index in 0..<result.count {
 					let val = verifyTensorReader[index]
 					if val.isInfinite || val.isNaN {continue}
-					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: 0.0001)
+					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: abs(val*0.001))
 				}
 			} else if i % 4 == 2 {
 				// mult
@@ -696,7 +696,7 @@ class TensorTest: XCTestCase {
 				for index in 0..<result.count {
 					let val = verifyTensorReader[index]
 					if val.isInfinite || val.isNaN {continue}
-					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: 0.0001)
+					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: abs(val*0.001))
 				}
 			} else {
 				// div
@@ -710,7 +710,7 @@ class TensorTest: XCTestCase {
 				for index in 0..<result.count {
 					let val = verifyTensorReader[index]
 					if val.isInfinite || val.isNaN {continue}
-					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: 0.0001)
+					XCTAssertEqualWithAccuracy(val, resultReader[index], accuracy: abs(val*0.001))
 				}
 			}
 			

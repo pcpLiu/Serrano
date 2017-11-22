@@ -170,9 +170,9 @@ public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: Bi
 			var outputTensors = [Tensor]()
             var shape: TensorShape
             if i < 8 { // smaller tensors
-                shape = randomShape(dimensions: 2, dimensionSizeRange: [100, 200], dataType: .float)
+                shape = randomShape(dimensions: 2, dimensionSizeRange: [10, 20], dataType: .float)
             } else { // large tensors
-                shape = randomShape(dimensions: 2, dimensionSizeRange: [1000, 2000], dataType: .float)
+                shape = randomShape(dimensions: 2, dimensionSizeRange: [500, 500], dataType: .float)
             }
             for _ in 0..<2 {
                 inputTensors.append(randomTensor(fromShape: shape))

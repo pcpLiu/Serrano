@@ -383,15 +383,12 @@ class Img2ColOpTest: XCTestCase {
 			
 			// generate valid input tensors
 			var inputTensors: [Tensor]? = [Tensor]()
-			let channel = randomInt([1, 5])
 			if i < 8 {
-				for _ in 0..<randomInt([1 , 4]) {
-					var shape = TensorShape(dataType: .float, shape: [channel, randomInt([100, 110]), randomInt([100, 110])])
-					if channelOrder == .Last {
-						 shape = TensorShape(dataType: .float, shape: [randomInt([100, 110]), randomInt([100, 110]), channel])
-					}
-					inputTensors!.append(randomTensor(fromShape: shape))
+				var shape = TensorShape(dataType: .float, shape: [3, randomInt([20, 30]), randomInt([20, 30])])
+				if channelOrder == .Last {
+					 shape = TensorShape(dataType: .float, shape: [randomInt([20, 30]), randomInt([20, 30]), 3])
 				}
+				inputTensors!.append(randomTensor(fromShape: shape))
 			} else {
 				var shape = TensorShape(dataType: .float, shape: [3, randomInt([500, 500]), randomInt([500, 500])])
 				if channelOrder == .Last {
