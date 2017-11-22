@@ -24,6 +24,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 16, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: input.shape))
 	
 	let (out_act1, _, _) = g.operation(inputs: out_conv1,
@@ -39,6 +40,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 32, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: out_poo1.first!.shape))
 
 	let (out_act2, _, _) = g.operation(inputs: out_conv2,
@@ -54,6 +56,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 64, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: out_poo2.first!.shape))
 
 	let (out_act3, _, _) = g.operation(inputs: out_conv3,
@@ -69,6 +72,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 128, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: out_poo3.first!.shape))
 
 	let (out_act4, _, _) = g.operation(inputs: out_conv4,
@@ -84,6 +88,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 256, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: out_poo4.first!.shape))
 
 	let (out_act5, _, _) = g.operation(inputs: out_conv5,
@@ -99,6 +104,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 512, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: out_poo5.first!.shape))
 
 	let (out_act6, _, _) = g.operation(inputs: out_conv6,
@@ -115,6 +121,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 1024, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: out_poo6.first!.shape))
 
 	let (out_act7, _, _) = g.operation(inputs: out_conv7,
@@ -127,6 +134,7 @@ func configureGraph() -> ForwardGraph {
 									   op: ConvOperator2D(numFilters: 512, kernelSize: [3, 3],
 														  padMode: PaddingMode.Same,
 														  channelPosition: TensorChannelOrder.Last,
+														  biasEnabled: false,
 														  inputShape: out_act7.first!.shape))
 
 	let (out_act8, _, _) = g.operation(inputs: out_conv8,

@@ -98,8 +98,9 @@ sleep 5
 
 # disable error handle
 set +e
-set -e
-trap 'error_handler_TESTING' ERR
+trap '' ERR
+# set -e
+# trap 'error_handler_TESTING' ERR
 
 
 # echo "Test iOS"
