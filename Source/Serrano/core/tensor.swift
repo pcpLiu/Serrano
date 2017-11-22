@@ -1804,10 +1804,6 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
 			return mpsi
 	}
 	#endif
-<<<<<<< HEAD
-=======
-	
->>>>>>> naive_convolution
 }
 
 
