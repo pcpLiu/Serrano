@@ -363,7 +363,7 @@ class Img2ColOpTest: XCTestCase {
 			print("Test \(i+1)...")
 			
 			// make valid patch size
-			let patchSize = makeValidPatchSize([2, 5])
+			let patchSize = makeValidPatchSize([1, 5])
 			
 			// make valid strides
 			let stride = makeValidStride([1, 4])

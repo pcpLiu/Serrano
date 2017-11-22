@@ -73,16 +73,90 @@ extension Array: SupportedNestedType {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// In Metal, UInt is 32 bits. In iOS, it is 64 bits on 64 bit system.
-typealias MetalUInt = UInt32
+// Following the same descripition in Metal Language Specification
+public typealias MetalUInt = UInt32
 
-typealias MetalUShort = UInt16
+public typealias MetalUShort = UInt16
 
-typealias MetalShort = Int16
+public typealias MetalShort = Int16
 
-typealias MetalInt = Int32
+public typealias MetalInt = Int32
 
-typealias MetalFloat = Float32
+public typealias MetalFloat = Float32
+
+public protocol MetalValueConverter {
+	var metalUInt: MetalUInt {get}
+	var metalUShort: MetalUShort {get}
+	var metalShort: MetalShort {get}
+	var metalInt: MetalInt {get}
+	var metalFloat: MetalFloat {get}
+}
+
+extension Int: MetalValueConverter {
+	public var metalUInt: MetalUInt {
+		return MetalUInt(self)
+	}
+	
+	public var metalUShort: MetalUShort {
+		return MetalUShort(self)
+	}
+	
+	public var metalShort: MetalShort {
+		return MetalShort(self)
+	}
+	
+	public var metalInt: MetalInt {
+		return MetalInt(self)
+	}
+	
+	public var metalFloat: MetalFloat {
+		return MetalFloat(self)
+	}
+}
+
+extension Float: MetalValueConverter {
+	public var metalUInt: MetalUInt {
+		return MetalUInt(self)
+	}
+	
+	public var metalUShort: MetalUShort {
+		return MetalUShort(self)
+	}
+	
+	public var metalShort: MetalShort {
+		return MetalShort(self)
+	}
+	
+	public var metalInt: MetalInt {
+		return MetalInt(self)
+	}
+	
+	public var metalFloat: MetalFloat {
+		return MetalFloat(self)
+	}
+}
+
+extension Double: MetalValueConverter {
+	public var metalUInt: MetalUInt {
+		return MetalUInt(self)
+	}
+	
+	public var metalUShort: MetalUShort {
+		return MetalUShort(self)
+	}
+	
+	public var metalShort: MetalShort {
+		return MetalShort(self)
+	}
+	
+	public var metalInt: MetalInt {
+		return MetalInt(self)
+	}
+	
+	public var metalFloat: MetalFloat {
+		return MetalFloat(self)
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -153,6 +153,9 @@
 		D463B5961F965B80009004DB /* cov_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D463B5941F965B80009004DB /* cov_op_test.swift */; };
 		D467731E1FBE072300DFB322 /* TinyYOLO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D467731D1FBE072300DFB322 /* TinyYOLO.swift */; };
 		D467731F1FBE072300DFB322 /* TinyYOLO.swift in Sources */ = {isa = PBXBuildFile; fileRef = D467731D1FBE072300DFB322 /* TinyYOLO.swift */; };
+		D46773511FC2869C00DFB322 /* serrano_misc.metal in Sources */ = {isa = PBXBuildFile; fileRef = D467734F1FC2869C00DFB322 /* serrano_misc.metal */; };
+		D46773521FC2869C00DFB322 /* serrano_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = D46773501FC2869C00DFB322 /* serrano_misc.h */; };
+		D46773531FC2878F00DFB322 /* serrano_misc.metal in Resources */ = {isa = PBXBuildFile; fileRef = D467734F1FC2869C00DFB322 /* serrano_misc.metal */; };
 		D48F7E6B1F1E668F007CB3BF /* pad_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48F7E6A1F1E668F007CB3BF /* pad_op_test.swift */; };
 		D4A567811EA32AEC001CEA4E /* copy_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A567801EA32AEC001CEA4E /* copy_op_test.swift */; };
 		D4A5FB0C1EFD98D900919288 /* transpose_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A5FB0B1EFD98D900919288 /* transpose_op_test.swift */; };
@@ -453,6 +456,8 @@
 		D4614F1B1F71F8F4004264CD /* sequential_model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sequential_model.swift; sourceTree = "<group>"; };
 		D463B5941F965B80009004DB /* cov_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cov_op_test.swift; sourceTree = "<group>"; };
 		D467731D1FBE072300DFB322 /* TinyYOLO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TinyYOLO.swift; sourceTree = "<group>"; };
+		D467734F1FC2869C00DFB322 /* serrano_misc.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = serrano_misc.metal; sourceTree = "<group>"; };
+		D46773501FC2869C00DFB322 /* serrano_misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = serrano_misc.h; sourceTree = "<group>"; };
 		D46E74471E971CF8001AEDBB /* serrano copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "serrano copy-Info.plist"; path = "/Users/lzhao/workSpace/serrano/serrano copy-Info.plist"; sourceTree = "<absolute>"; };
 		D48EF5201E7A1A95000C3C94 /* tensor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tensor.swift; sourceTree = "<group>"; };
 		D48EF5231E7B3BCF000C3C94 /* tensor_test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tensor_test.swift; sourceTree = "<group>"; };
@@ -857,6 +862,8 @@
 			isa = PBXGroup;
 			children = (
 				D4177E9A1E7122D700E185D9 /* utils.swift */,
+				D46773501FC2869C00DFB322 /* serrano_misc.h */,
+				D467734F1FC2869C00DFB322 /* serrano_misc.metal */,
 				D48EF52A1E7C40EC000C3C94 /* logging.swift */,
 				D4A99A011E98302800AF6436 /* type_ext.swift */,
 				D45C53151EAC5C95003D4488 /* metal_hardwares.swift */,
@@ -1374,6 +1381,7 @@
 				D4BC26041FAA589D00AC96D5 /* flatcc_endian.h in Headers */,
 				D4BC26051FAA589D00AC96D5 /* flatcc_flatbuffers.h in Headers */,
 				D4BC26061FAA589D00AC96D5 /* flatcc_identifier.h in Headers */,
+				D46773521FC2869C00DFB322 /* serrano_misc.h in Headers */,
 				D4BC26071FAA589D00AC96D5 /* flatcc_iov.h in Headers */,
 				D4BC26081FAA589D00AC96D5 /* flatcc_json_parser.h in Headers */,
 				D4BC26091FAA589D00AC96D5 /* flatcc_json_printer.h in Headers */,
@@ -1567,6 +1575,7 @@
 				D4BC26361FAA616C00AC96D5 /* activation_op.metal in Resources */,
 				D4BC26371FAA616C00AC96D5 /* reduce_op.metal in Resources */,
 				D4BC26381FAA616C00AC96D5 /* unary_op.metal in Resources */,
+				D46773531FC2878F00DFB322 /* serrano_misc.metal in Resources */,
 				D4BC26391FAA616C00AC96D5 /* transpose_op.metal in Resources */,
 				D4BC263A1FAA616C00AC96D5 /* binary_op.metal in Resources */,
 				D4BC263B1FAA616C00AC96D5 /* matrix_mult_op.metal in Resources */,
@@ -1726,6 +1735,7 @@
 				D4BC25D51FAA579900AC96D5 /* operator_symbol.swift in Sources */,
 				D4BC25D61FAA579900AC96D5 /* scalar_symbol.swift in Sources */,
 				D4BC25D71FAA579900AC96D5 /* graph_symbol.swift in Sources */,
+				D46773511FC2869C00DFB322 /* serrano_misc.metal in Sources */,
 				D4BC25D81FAA579900AC96D5 /* computation_graph.swift in Sources */,
 				D4BC25D91FAA579900AC96D5 /* fullyconnected_op.swift in Sources */,
 				D4BC25DB1FAA579900AC96D5 /* batchnorm_op.swift in Sources */,

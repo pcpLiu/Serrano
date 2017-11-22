@@ -14,6 +14,8 @@ import Accelerate
 public class OperatorDelegateConvDotMatrixMultOp: OperatorDelegateConv {
 	public var transposeA = false
 	public var transposeB = false
+	public var copyOriginOutput: Tensor? = nil
+	public var beta: Float = 0.0
 	
 	override public func compare() {
 		XCTAssertTrue(self.resultTensors.count == 1)
@@ -28,7 +30,7 @@ public class OperatorDelegateConvDotMatrixMultOp: OperatorDelegateConv {
 
 		let readA = tensorA.contentsAddress
 		let readB = tensorB.contentsAddress
-		let verifyTensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(tensorC.shape)
+		let verifyTensor = self.copyOriginOutput!
 		let verifyAddres = verifyTensor.contentsAddress
 		var M = Int32(tensorA.shape.shapeArray[0])
 		if self.transposeA {
@@ -51,7 +53,7 @@ public class OperatorDelegateConvDotMatrixMultOp: OperatorDelegateConv {
 		
 		
 		cblas_sgemm(CblasRowMajor, cblasTrans(self.transposeA), cblasTrans(self.transposeB), M, N, K,
-					1.0, readA, lda, readB, ldb, 0.0, verifyAddres, ldc)
+					1.0, readA, lda, readB, ldb, self.beta, verifyAddres, ldc)
 		
 		
 		let verifyReader = verifyTensor.floatValueReader
@@ -315,7 +317,7 @@ class MatriMultOpTest: XCTestCase {
 	internal func gpu()
 	*/
 	func testCompute() {
-		let numCase = 10
+		let numCase = 20
 		let op = MatrixMultOperator()
 		
 		// gpu initial
@@ -338,7 +340,7 @@ class MatriMultOpTest: XCTestCase {
 
 			// generate tensors
 			var dimRange: [Int] = [100, 110]
-			if i >= 8 {
+			if i >= 18 {
 				dimRange = [800, 800]
 			}
 			
@@ -374,13 +376,25 @@ class MatriMultOpTest: XCTestCase {
 			outputTensors.append(outTensor)
 			print("Output C: \(outTensor.shape)")
 			
+			// beta
+			let beta: Float = Float(randomInt([1, 10]))
+			
+			// get raw output
+			let rawOutput = randomTensor(fromShape: outTensor.shape)
+			let copyOp = CopyOperator(inputTensors: [outTensor], outputTensors: [rawOutput])
+			copyOp.compute()
+
+			
 			op.transposeA = transposeA
 			op.transposeB = transposeB
 			op.inputTensors = inputTensors
 			op.outputTensors = outputTensors
+			op.matrixBeta = beta
 			delegate.veryfyTensors = inputTensors
+			delegate.copyOriginOutput = rawOutput
 			delegate.transposeA = transposeA
 			delegate.transposeB = transposeB
+			delegate.beta = beta
 			
 			if i % 3 == 0 {
 				op.disabledMPS = true
@@ -389,11 +403,16 @@ class MatriMultOpTest: XCTestCase {
 			if i % 2 == 0 {
 				print("Run CPU")
 				workGroup.enter()
-				op.computeAsync(.GPU)
+				op.computeAsync(.CPU)
+//				op.computeAsync(.GPU)
 			} else {
 				if !SerranoEngine.configuredEngine.hasAvailableGPU() {
 					print("No available GPU, give up test.\n\n")
 					continue
+				}
+				if randomInt([0, 10]) % 3 == 0 {
+					op.disabledMPS = true
+					print("Not use MPS")
 				}
 				workGroup.enter()
 				op.computeAsync(.GPU)

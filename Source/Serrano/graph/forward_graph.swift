@@ -303,7 +303,7 @@ public class ForwardGraph: ComputationGraph {
 		}
 		
 		let stageWorkGroup = DispatchGroup()
-		let begginTime = CFAbsoluteTimeGetCurrent()
+//		let begginTime = CFAbsoluteTimeGetCurrent()
 		for stage in self.symbolStages.keys.sorted() {
 			for symbol in self.symbolStages[stage]! {
 				if symbol.symbolType == .Operator {

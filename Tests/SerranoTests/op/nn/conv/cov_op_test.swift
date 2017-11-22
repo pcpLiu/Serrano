@@ -11,8 +11,8 @@ import XCTest
 
 
 /// Do naive  convolution to get result
-func naiveConvVerify(input: Tensor, weight: Tensor, bias: Tensor, outputShape: TensorShape, pad: PaddingMode, stride: [Int], channelOrder: TensorChannelOrder, kernelSize: [Int]) -> Tensor {
-	let tensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(outputShape)
+func naiveConvVerify(input: Tensor, weight: Tensor, bias: Tensor, outputShape: TensorShape, pad: PaddingMode, stride: [Int], channelOrder: TensorChannelOrder, kernelSize: [Int], biasEnable: Bool) -> Tensor {
+	let tensor = Tensor(repeatingValue: 0.0, tensorShape: outputShape)
 	let (channel, inHeight, inWidth) = parseImgChannelShapeInfo(channelOrder, shapeArray: input.shape.shapeArray)
 	let numFilter = weight.shape.shapeArray[0]
 	
@@ -39,11 +39,14 @@ func naiveConvVerify(input: Tensor, weight: Tensor, bias: Tensor, outputShape: T
 		}
 	}
 	
+
 	// bias
-	for h in 0..<outHeight {
-		for w in 0..<outWidth {
-			for c in 0..<numFilter {
-				tensor[h, w, c] += bias[c]
+	if biasEnable {
+		for h in 0..<outHeight {
+			for w in 0..<outWidth {
+				for c in 0..<numFilter {
+					tensor[h, w, c] += bias[c]
+				}
 			}
 		}
 	}
@@ -61,13 +64,14 @@ class OperatorDelegateConv2D: OperatorDelegateConv {
 		for (input, output) in zip(op!.inputTensors!, op!.outputTensors!) {
 			let veryTensor = naiveConvVerify(input: input, weight: self.op!.weight!, bias: self.op!.bias!,
 			                                 outputShape: output.shape, pad: op!.padMode, stride: op!.stride, channelOrder: op!.channelPosition,
-			                                 kernelSize: op!.kernelSize)
+			                                 kernelSize: op!.kernelSize, biasEnable: op!.biasEnabled)
 			let outReader = output.floatValueReader
 			let verifyReader = veryTensor.floatValueReader
 			for i in 0..<output.count {
-				XCTAssertEqual(outReader[i], verifyReader[i], accuracy: abs(verifyReader[i]*0.001))
+				XCTAssertEqual(outReader[i], verifyReader[i], accuracy: abs(verifyReader[i]*0.01), "outReader[i]: \(outReader[i]), verifyReader[i]:\(verifyReader[i]), ")
 			}
 //			print(veryTensor.nestedArrayFloat())
+//			print("============================")
 //			print(output.nestedArrayFloat())
 //			print(self.op!.bias!.nestedArrayFloat())
 		}
@@ -387,8 +391,8 @@ class CovOpTest: XCTestCase {
 	public func computeAsync(_ computationMode: OperatorComputationMode)
 	*/
 	func testCompute() {
-		let numCase = 10
-		
+		let numCase = 40
+	
 		let workGroup = DispatchGroup()
 		let delegate = OperatorDelegateConv2D()
 		delegate.dispatchGroup = workGroup
@@ -399,36 +403,32 @@ class CovOpTest: XCTestCase {
 			print("Test case \(i+1)...")
 			
 			// valid num filters
-			let numFilters = randomInt([1, 10])
-//			let numFilters = 3
+			let numFilters = randomInt([1, 5])
 			
 			// valid kernel size
 			let kernelSize = [randomInt([1, 5]), randomInt([1, 5])]
-//			let kernelSize = [2, 2]
 			
 			// valid stride
 			let stride = [randomInt([1, 5]), randomInt([1, 5])]
-//			let stride = [1, 1]
 			
 			// valid diliation
 			let diliation = [1, 1]
 			
 			// padding mode
 			var padding = PaddingMode.Same
-			if i % 3 == 0 {
+			if randomInt([0, 10]) % 3 == 0 {
 				padding = PaddingMode.Valid
 			}
 			
 			// channel order
 			var channelOrder = TensorChannelOrder.Last
-			if i % 4 == 0 {
+			if randomInt([0, 20]) % 4 == 0 {
 				channelOrder = TensorChannelOrder.First
 			}
-			
+
 			// decide input shape
-			var range = [50, 50]
-//			var range = [4, 4]
-			if i >= 8 {
+			var range = [20, 30]
+			if i >= 36 {
 				range = [500, 500]
 			}
 			let channel = randomInt([1, 4])
@@ -456,6 +456,7 @@ class CovOpTest: XCTestCase {
 			// weight
 			let weight:Tensor = randomTensor(fromShape: TensorShape(dataType: .int,
 			                                                        shape: [numFilters, channel, kernelSize[0], kernelSize[1]]))
+			
 			// valid bias
 			let bias = randomTensor(fromShape: TensorShape(dataType: .int, shape: [numFilters]))
 			
@@ -463,7 +464,23 @@ class CovOpTest: XCTestCase {
 			convOp.outputTensors = output
 			convOp.weight = weight
 			convOp.bias = bias
+			convOp.paddingValue = 0.0
 			delegate.op = convOp
+
+			// method
+			if  randomInt([0, 10]) % 2 == 0 {
+				convOp.calMethod = ConvMethod.Naive
+			} else {
+				convOp.calMethod = ConvMethod.Img2Col
+			}
+
+			// bias
+			if  randomInt([0, 10]) % 2 == 0 {
+				convOp.biasEnabled = true
+			} else {
+				convOp.biasEnabled = false
+			}
+			
 			
 			if i % 2 == 0 {
 				workGroup.enter()
