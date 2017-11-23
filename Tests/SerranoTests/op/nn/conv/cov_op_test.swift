@@ -391,7 +391,7 @@ class CovOpTest: XCTestCase {
 	public func computeAsync(_ computationMode: OperatorComputationMode)
 	*/
 	func testCompute() {
-		let numCase = 40
+		let numCase = 20
 	
 		let workGroup = DispatchGroup()
 		let delegate = OperatorDelegateConv2D()
@@ -428,7 +428,7 @@ class CovOpTest: XCTestCase {
 
 			// decide input shape
 			var range = [20, 30]
-			if i >= 36 {
+			if i >= 18 {
 				range = [500, 500]
 			}
 			let channel = randomInt([1, 4])
