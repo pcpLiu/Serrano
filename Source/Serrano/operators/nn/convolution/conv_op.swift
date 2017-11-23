@@ -163,7 +163,7 @@ public class ConvOperator2D: ComputableOperator {
 	public var inputShape: TensorShape?
 	
 	/// Calculation method
-	public var calMethod: ConvMethod = ConvMethod.Naive
+	public var calMethod: ConvMethod
 	
 	/// Padding value when using Same mode
 	public var paddingValue: Float = 0.0
@@ -200,7 +200,8 @@ public class ConvOperator2D: ComputableOperator {
 	            inputTensors: [Tensor]? = nil, outputTensors: [Tensor]? = nil,
 	            operatorLabel: String = "Conv2DOp",
 	            inputShape: TensorShape? = nil,
-	            disableInputOutputCheck: Bool = false) {
+	            disableInputOutputCheck: Bool = false,
+				calMethod: ConvMethod = ConvMethod.Img2Col) {
 		self.numFilters = numFilters
 		self.kernelSize = kernelSize
 		self.stride = stride
@@ -216,6 +217,7 @@ public class ConvOperator2D: ComputableOperator {
 		self.operatorLabel = operatorLabel
 		self.inputShape = inputShape
 		self.disableInputOutputCheck = disableInputOutputCheck
+		self.calMethod = calMethod
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

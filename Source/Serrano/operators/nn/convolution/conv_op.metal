@@ -9,7 +9,7 @@
 #include <metal_stdlib>
 
 using namespace metal;
-#include "Source/Serrano/utils/serrano_misc.h"
+#include "serrano_misc.h"
 
 
 struct ConvInfo {

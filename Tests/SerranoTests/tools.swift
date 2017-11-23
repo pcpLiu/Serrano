@@ -119,13 +119,13 @@ public func generateFlatArrayFromShape(shapeArray: [Int], dataType: TensorDataTy
  */
 public func randomTensor(dimensions: Int, dimensionSizeRange:[Int], dataType: TensorDataType) -> Tensor {
     let shape = randomShape(dimensions: dimensions, dimensionSizeRange: dimensionSizeRange, dataType: dataType)
-    let tensor = SerranoResourceManager.globalManager.allocateTensors( [shape]).first!
+    let tensor =  Tensor(repeatingValue: 0.0, tensorShape: shape)
     tensor.reloadData(fromFlatArray: generateFlatArrayFromShape(shapeArray: shape.shapeArray, dataType: dataType), tensorShape: shape)
     return tensor
 }
 
 public func randomTensor(fromShape shape: TensorShape) -> Tensor {
-    let tensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(shape) 
+    let tensor = Tensor(repeatingValue: 0.0, tensorShape: shape)
 	tensor.reloadData(fromFlatArray: generateFlatArrayFromShape(shapeArray: shape.shapeArray, dataType: shape.dataType), tensorShape: shape)
     return tensor
 }
