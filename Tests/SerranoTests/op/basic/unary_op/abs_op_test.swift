@@ -19,13 +19,26 @@ class AbsOpDelegate: OperatorDelegateConvUnaryOp {
             for i in 0..<rawTensor.count {
                 let val = abs(readerReader[i])
                 if abs(val) < 0.001 {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
-				} else {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
-				}
+                    XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
+                } else {
+                    XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
+                }
             }
         }
         self.init(block: blcok)
+        // grad: x / abs(x)
+        self.gradVerifyBlock = {(grads: [String : DataSymbolSupportedDataType], inputs:[Tensor]) -> Void in
+            for (index, input) in inputs.enumerated() {
+                let resultGrad = grads["input_\(index)"]!.tensorValue
+                for i in 0..<input.count {
+                    let val = input.floatValueReader[i] / abs(input.floatValueReader[i])
+                    if val.isNaN || val.isInfinite {
+                        continue
+                    }
+                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: abs(val*0.001))
+                }
+            }
+        }
     }
 }
 

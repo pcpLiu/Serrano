@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Accelerate
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
 
@@ -84,156 +85,172 @@ public typealias MetalInt = Int32
 
 public typealias MetalFloat = Float32
 
-public protocol MetalValueConverter {
-	var metalUInt: MetalUInt {get}
-	var metalUShort: MetalUShort {get}
-	var metalShort: MetalShort {get}
-	var metalInt: MetalInt {get}
-	var metalFloat: MetalFloat {get}
+public protocol SerranoValueConverter {
+    var metalUInt: MetalUInt {get}
+    var metalUShort: MetalUShort {get}
+    var metalShort: MetalShort {get}
+    var metalInt: MetalInt {get}
+    var metalFloat: MetalFloat {get}
+    
+    var vDSPLength: vDSP_Length {get}
 }
 
-extension Int: MetalValueConverter {
-	public var metalUInt: MetalUInt {
-		return MetalUInt(self)
-	}
-	
-	public var metalUShort: MetalUShort {
-		return MetalUShort(self)
-	}
-	
-	public var metalShort: MetalShort {
-		return MetalShort(self)
-	}
-	
-	public var metalInt: MetalInt {
-		return MetalInt(self)
-	}
-	
-	public var metalFloat: MetalFloat {
-		return MetalFloat(self)
-	}
+extension Int: SerranoValueConverter {
+    public var metalUInt: MetalUInt {
+        return MetalUInt(self)
+    }
+    
+    public var metalUShort: MetalUShort {
+        return MetalUShort(self)
+    }
+    
+    public var metalShort: MetalShort {
+        return MetalShort(self)
+    }
+    
+    public var metalInt: MetalInt {
+        return MetalInt(self)
+    }
+    
+    public var metalFloat: MetalFloat {
+        return MetalFloat(self)
+    }
+    
+    public var vDSPLength: vDSP_Length {
+        return vDSP_Length(self)
+    }
 }
 
-extension Float: MetalValueConverter {
-	public var metalUInt: MetalUInt {
-		return MetalUInt(self)
-	}
-	
-	public var metalUShort: MetalUShort {
-		return MetalUShort(self)
-	}
-	
-	public var metalShort: MetalShort {
-		return MetalShort(self)
-	}
-	
-	public var metalInt: MetalInt {
-		return MetalInt(self)
-	}
-	
-	public var metalFloat: MetalFloat {
-		return MetalFloat(self)
-	}
+extension Float: SerranoValueConverter {
+    public var metalUInt: MetalUInt {
+        return MetalUInt(self)
+    }
+    
+    public var metalUShort: MetalUShort {
+        return MetalUShort(self)
+    }
+    
+    public var metalShort: MetalShort {
+        return MetalShort(self)
+    }
+    
+    public var metalInt: MetalInt {
+        return MetalInt(self)
+    }
+    
+    public var metalFloat: MetalFloat {
+        return MetalFloat(self)
+    }
+    
+    public var vDSPLength: vDSP_Length {
+        return vDSP_Length(self)
+    }
 }
 
-extension Double: MetalValueConverter {
-	public var metalUInt: MetalUInt {
-		return MetalUInt(self)
-	}
-	
-	public var metalUShort: MetalUShort {
-		return MetalUShort(self)
-	}
-	
-	public var metalShort: MetalShort {
-		return MetalShort(self)
-	}
-	
-	public var metalInt: MetalInt {
-		return MetalInt(self)
-	}
-	
-	public var metalFloat: MetalFloat {
-		return MetalFloat(self)
-	}
+extension Double: SerranoValueConverter {
+    public var metalUInt: MetalUInt {
+        return MetalUInt(self)
+    }
+    
+    public var metalUShort: MetalUShort {
+        return MetalUShort(self)
+    }
+    
+    public var metalShort: MetalShort {
+        return MetalShort(self)
+    }
+    
+    public var metalInt: MetalInt {
+        return MetalInt(self)
+    }
+    
+    public var metalFloat: MetalFloat {
+        return MetalFloat(self)
+    }
+    
+    public var vDSPLength: vDSP_Length {
+        return vDSP_Length(self)
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public protocol DataSymbolSupportedDataType {
-	var description: String {get}
-	var tensorValue: Tensor {get}
-	var scarlarValue: Float {get}
+    var description: String {get}
+    var tensorValue: Tensor {get}
+    var scarlarValue: Float {get}
 }
 extension Int: DataSymbolSupportedDataType {
-	public var description: String {
-		get {
-			return "Int value: \(self)"
-		}
-	}
-	
-	public var tensorValue: Tensor {
-		get {
-			fatalError("This DataSymbolSupportedDataType is a scarlar.")
-		}
-	}
-	
-	public var scarlarValue: Float {
-		get {
-			return Float(self)
-		}
-	}
+    public var description: String {
+        get {
+            return "Int value: \(self)"
+        }
+    }
+    
+    public var tensorValue: Tensor {
+        get {
+            fatalError("This DataSymbolSupportedDataType is a scarlar.")
+        }
+    }
+    
+    public var scarlarValue: Float {
+        get {
+            return Float(self)
+        }
+    }
 }
 extension Double: DataSymbolSupportedDataType {
-	public var description:String {
-		get {
-			return "Double value: \(self)"
-		}
-	}
-	
-	public var tensorValue: Tensor {
-		get {
-			fatalError("This DataSymbolSupportedDataType is a scarlar.")
-		}
-	}
-	
-	public var scarlarValue: Float {
-		get {
-			return Float(self)
-		}
-	}
+    public var description:String {
+        get {
+            return "Double value: \(self)"
+        }
+    }
+    
+    public var tensorValue: Tensor {
+        get {
+            fatalError("This DataSymbolSupportedDataType is a scarlar.")
+        }
+    }
+    
+    public var scarlarValue: Float {
+        get {
+            return Float(self)
+        }
+    }
 }
 extension Float: DataSymbolSupportedDataType {
-	public var description:String {
-		get {
-			return "Float value: \(self)"
-		}
-	}
-	
-	public var tensorValue: Tensor {
-		get {
-			fatalError("This DataSymbolSupportedDataType is a scarlar.")
-		}
-	}
-	
-	public var scarlarValue: Float {
-		get {
-			return self
-		}
-	}
+    public var description:String {
+        get {
+            return "Float value: \(self)"
+        }
+    }
+    
+    public var tensorValue: Tensor {
+        get {
+            fatalError("This DataSymbolSupportedDataType is a scarlar.")
+        }
+    }
+    
+    public var scarlarValue: Float {
+        get {
+            return self
+        }
+    }
 }
 extension Tensor: DataSymbolSupportedDataType {
-	public var scarlarValue: Float {
-		get {
-			fatalError("This DataSymbolSupportedDataType is a tensor.")
-		}
-	}
-	
-	public var tensorValue: Tensor {
-		get {
-			return self
-		}
-	}
+    public var scarlarValue: Float {
+        get {
+            fatalError("This DataSymbolSupportedDataType is a tensor.")
+        }
+    }
+    
+    public var tensorValue: Tensor {
+        get {
+            return self
+        }
+    }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

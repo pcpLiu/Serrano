@@ -97,19 +97,19 @@ public func generateArrayFromShape(shapeArray: [Int], dataType: TensorDataType) 
 }
 
 
-public func generateFlatArrayFromShape(shapeArray: [Int], dataType: TensorDataType) ->  [Float] {
+public func generateFlatArrayFromShape(shapeArray: [Int], dataType: TensorDataType, valueRange: [Int] = [-10, 10]) ->  [Float] {
     var flatArray = Array(repeating: Float(0.0), count: shapeArray.reduce(1, *))
-	
-	switch dataType {
-	case .float:
-		for i in 0..<flatArray.count { flatArray[i] = randomFloat() }
-	case .double:
-		for i in 0..<flatArray.count { flatArray[i] = Float(randomDouble()) }
-	case .int:
-		for i in 0..<flatArray.count { flatArray[i] = Float(randomInt([-100, 100])) }
-	}
-	
-	
+    
+    switch dataType {
+    case .float:
+        for i in 0..<flatArray.count { flatArray[i] = randomFloat() }
+    case .double:
+        for i in 0..<flatArray.count { flatArray[i] = Float(randomDouble()) }
+    case .int:
+        for i in 0..<flatArray.count { flatArray[i] = Float(randomInt(valueRange)) }
+    }
+    
+    
     return flatArray
 }
 
@@ -119,35 +119,25 @@ public func generateFlatArrayFromShape(shapeArray: [Int], dataType: TensorDataTy
  */
 public func randomTensor(dimensions: Int, dimensionSizeRange:[Int], dataType: TensorDataType) -> Tensor {
     let shape = randomShape(dimensions: dimensions, dimensionSizeRange: dimensionSizeRange, dataType: dataType)
-    let tensor = SerranoResourceManager.globalManager.allocateTensors( [shape]).first!
+    let tensor =  Tensor(repeatingValue: 0.0, tensorShape: shape)
     tensor.reloadData(fromFlatArray: generateFlatArrayFromShape(shapeArray: shape.shapeArray, dataType: dataType), tensorShape: shape)
     return tensor
 }
 
-public func randomTensor(fromShape shape: TensorShape) -> Tensor {
-    let tensor = SerranoResourceManager.globalManager.allocateUnamangedTensor(shape) 
-	tensor.reloadData(fromFlatArray: generateFlatArrayFromShape(shapeArray: shape.shapeArray, dataType: shape.dataType), tensorShape: shape)
+public func randomTensor(fromShape shape: TensorShape, valueRange: [Int] = [-10, 10]) -> Tensor {
+    let tensor = Tensor(repeatingValue: 0.0, tensorShape: shape)
+    tensor.reloadData(fromFlatArray: generateFlatArrayFromShape(shapeArray: shape.shapeArray, dataType: shape.dataType, valueRange: valueRange), tensorShape: shape)
     return tensor
 }
 
 
 public class OperatorDelegateConv: OperatorCalculationDelegate {
-	public func operatorDidEndGradsComputation(_ op: ComputableOperator, grads: [String : DataSymbolSupportedDataType]) {
-		
-	}
-	
-	
-	public func operatorDidEndGradsComputation(_ op: ComputableOperator, outputTensors tensors: [Tensor]) {
-		fatalError("")
-	}
-	
-	public func operatorWillBeginGradsComputation(_ op: ComputableOperator) {
-		fatalError()
-	}
-
     
     public var resultTensors: [Tensor] = [Tensor]()
     public var veryfyTensors: [Tensor] = [Tensor]()
+    
+    public var resultGrads: [String : DataSymbolSupportedDataType] = [String : DataSymbolSupportedDataType]()
+    
     
     public var dispatchGroup: DispatchGroup? = nil
             
@@ -158,14 +148,31 @@ public class OperatorDelegateConv: OperatorCalculationDelegate {
     public func operatorDidEndComputation(_ op: ComputableOperator, outputTensors tensors: [Tensor]){
         print("Operator did end computation \(op.operatorLabel)")
         self.resultTensors = tensors
-		
-		print("start compare")
-		self.compare()
-		print("Finish compare")
-		
+        
+        print("start compare")
+        self.compare()
+        print("Finish compare")
+        
         self.dispatchGroup!.leave()
     }
-	
+    
+    public func operatorWillBeginGradsComputation(_ op: ComputableOperator) {
+        print("Operator will begin computation on grads \(op.operatorLabel)")
+    }
+    
+    public func operatorDidEndGradsComputation(_ op: ComputableOperator, grads: [String : DataSymbolSupportedDataType]) {
+        self.resultGrads = grads
+        
+        print("start compare")
+        self.compareGrads()
+        print("Finish compare")
+        
+        self.dispatchGroup!.leave()
+    }
+    
+    public func compareGrads() {
+        fatalError("NEED override")
+    }
     
     public func compare() {
         fatalError("Need override")
