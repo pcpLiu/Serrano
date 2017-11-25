@@ -19,7 +19,12 @@ Pod::Spec.new do |spec|
   spec.source_files = 'Source/**/*.{swift,c,h}'
   spec.public_header_files = 'Source/SupportingFiles/Serrano.h'
   spec.resources = 'Source/**/*.{metal}'
-
-  spec.pod_target_xcconfig = { 'SWIFT_VERSION' => '3.2', 'SWIFT_INCLUDE_PATHS' => '$(SRCROOT)/Serrano/Source/library/FBSUtil/**'}
   spec.preserve_paths = 'Source/library/FBSUtil/module.modulemap'
+
+  spec.pod_target_xcconfig = { 
+    'SWIFT_VERSION' => '3.2',
+    'USER_HEADER_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/Source/library/FBSUtil/**',
+    'SWIFT_INCLUDE_PATHS' => '$(PODS_TARGET_SRCROOT)/Source/library/FBSUtil/**',
+    'MTL_HEADER_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/Source/Serrano/utils',
+  }
 end
