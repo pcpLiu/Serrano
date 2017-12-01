@@ -156,6 +156,10 @@
 		D46773511FC2869C00DFB322 /* serrano_misc.metal in Sources */ = {isa = PBXBuildFile; fileRef = D467734F1FC2869C00DFB322 /* serrano_misc.metal */; };
 		D46773521FC2869C00DFB322 /* serrano_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = D46773501FC2869C00DFB322 /* serrano_misc.h */; };
 		D46773531FC2878F00DFB322 /* serrano_misc.metal in Resources */ = {isa = PBXBuildFile; fileRef = D467734F1FC2869C00DFB322 /* serrano_misc.metal */; };
+		D46E47B31FCD09910088730C /* batchnorm_op.metal in Sources */ = {isa = PBXBuildFile; fileRef = D46E47B21FCD09910088730C /* batchnorm_op.metal */; };
+		D46E47B41FCD09990088730C /* batchnorm_op.metal in Resources */ = {isa = PBXBuildFile; fileRef = D46E47B21FCD09910088730C /* batchnorm_op.metal */; };
+		D46E47B61FCD13250088730C /* batchnorm_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46E47B51FCD13250088730C /* batchnorm_op_test.swift */; };
+		D46E47B71FCD13250088730C /* batchnorm_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46E47B51FCD13250088730C /* batchnorm_op_test.swift */; };
 		D48F7E6B1F1E668F007CB3BF /* pad_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48F7E6A1F1E668F007CB3BF /* pad_op_test.swift */; };
 		D4A567811EA32AEC001CEA4E /* copy_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A567801EA32AEC001CEA4E /* copy_op_test.swift */; };
 		D4A5FB0C1EFD98D900919288 /* transpose_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4A5FB0B1EFD98D900919288 /* transpose_op_test.swift */; };
@@ -458,6 +462,8 @@
 		D467731D1FBE072300DFB322 /* TinyYOLO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TinyYOLO.swift; sourceTree = "<group>"; };
 		D467734F1FC2869C00DFB322 /* serrano_misc.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = serrano_misc.metal; sourceTree = "<group>"; };
 		D46773501FC2869C00DFB322 /* serrano_misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = serrano_misc.h; sourceTree = "<group>"; };
+		D46E47B21FCD09910088730C /* batchnorm_op.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = batchnorm_op.metal; sourceTree = "<group>"; };
+		D46E47B51FCD13250088730C /* batchnorm_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = batchnorm_op_test.swift; sourceTree = "<group>"; };
 		D46E74471E971CF8001AEDBB /* serrano copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "serrano copy-Info.plist"; path = "/Users/lzhao/workSpace/serrano/serrano copy-Info.plist"; sourceTree = "<absolute>"; };
 		D48EF5201E7A1A95000C3C94 /* tensor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tensor.swift; sourceTree = "<group>"; };
 		D48EF5231E7B3BCF000C3C94 /* tensor_test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tensor_test.swift; sourceTree = "<group>"; };
@@ -714,6 +720,7 @@
 			isa = PBXGroup;
 			children = (
 				D411F03B1F7AC79F00537972 /* fullyconnected_op_test.swift */,
+				D46E47B51FCD13250088730C /* batchnorm_op_test.swift */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -1045,6 +1052,7 @@
 			children = (
 				D48F7E2C1F1BB10F007CB3BF /* fullyconnected_op.swift */,
 				D4288EB81F41E77A00C95AB5 /* batchnorm_op.swift */,
+				D46E47B21FCD09910088730C /* batchnorm_op.metal */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -1574,6 +1582,7 @@
 				D4BC26351FAA616C00AC96D5 /* img2col_op.metal in Resources */,
 				D4BC26361FAA616C00AC96D5 /* activation_op.metal in Resources */,
 				D4BC26371FAA616C00AC96D5 /* reduce_op.metal in Resources */,
+				D46E47B41FCD09990088730C /* batchnorm_op.metal in Resources */,
 				D4BC26381FAA616C00AC96D5 /* unary_op.metal in Resources */,
 				D46773531FC2878F00DFB322 /* serrano_misc.metal in Resources */,
 				D4BC26391FAA616C00AC96D5 /* transpose_op.metal in Resources */,
@@ -1645,6 +1654,7 @@
 				D4288F1F1F438EE900C95AB5 /* arctan_op_test.swift in Sources */,
 				D44DF47D1FA1174E0028198E /* VGG16.swift in Sources */,
 				D4288F0F1F438EDF00C95AB5 /* broadcast_div_op_test.swift in Sources */,
+				D46E47B71FCD13250088730C /* batchnorm_op_test.swift in Sources */,
 				D44BC9A51F9ED5C8003D0956 /* relu_op_test.swift in Sources */,
 				D4288F361F438EE900C95AB5 /* matrix_mult_op_test.swift in Sources */,
 				D4288F291F438EE900C95AB5 /* floor_op_test.swift in Sources */,
@@ -1760,6 +1770,7 @@
 				D4BC25EC1FAA579900AC96D5 /* transpose_op.metal in Sources */,
 				D4BC25ED1FAA579900AC96D5 /* broadcast_arithmetic_ops.swift in Sources */,
 				D4BC25EE1FAA579900AC96D5 /* binary_op.swift in Sources */,
+				D46E47B31FCD09910088730C /* batchnorm_op.metal in Sources */,
 				D4BC25EF1FAA579900AC96D5 /* binary_op.metal in Sources */,
 				D4BC25F01FAA579900AC96D5 /* matrix_mult_op.swift in Sources */,
 				D4BC25F11FAA579900AC96D5 /* matrix_mult_op.metal in Sources */,
@@ -1804,6 +1815,7 @@
 				D44BC9991F9ED55D003D0956 /* pool2d_op_test.swift in Sources */,
 				D4DEA5D51EF0684000B3DE60 /* sub_op_test.swift in Sources */,
 				D4244CEB1F084E2E000A4693 /* reduce_prod_op_test.swift in Sources */,
+				D46E47B61FCD13250088730C /* batchnorm_op_test.swift in Sources */,
 				D4BD5DE41EE7091E0078C508 /* degree_op_test.swift in Sources */,
 				D44BC9B81F9ED5D3003D0956 /* fullyconnected_op_test.swift in Sources */,
 				D4BD5E091EE747780078C508 /* floor_op_test.swift in Sources */,

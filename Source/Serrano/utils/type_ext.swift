@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Accelerate
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
 
@@ -84,15 +85,17 @@ public typealias MetalInt = Int32
 
 public typealias MetalFloat = Float32
 
-public protocol MetalValueConverter {
+public protocol SerranoValueConverter {
 	var metalUInt: MetalUInt {get}
 	var metalUShort: MetalUShort {get}
 	var metalShort: MetalShort {get}
 	var metalInt: MetalInt {get}
 	var metalFloat: MetalFloat {get}
+	
+	var vDSPLength: vDSP_Length {get}
 }
 
-extension Int: MetalValueConverter {
+extension Int: SerranoValueConverter {
 	public var metalUInt: MetalUInt {
 		return MetalUInt(self)
 	}
@@ -112,9 +115,13 @@ extension Int: MetalValueConverter {
 	public var metalFloat: MetalFloat {
 		return MetalFloat(self)
 	}
+	
+	public var vDSPLength: vDSP_Length {
+		return vDSP_Length(self)
+	}
 }
 
-extension Float: MetalValueConverter {
+extension Float: SerranoValueConverter {
 	public var metalUInt: MetalUInt {
 		return MetalUInt(self)
 	}
@@ -134,9 +141,13 @@ extension Float: MetalValueConverter {
 	public var metalFloat: MetalFloat {
 		return MetalFloat(self)
 	}
+	
+	public var vDSPLength: vDSP_Length {
+		return vDSP_Length(self)
+	}
 }
 
-extension Double: MetalValueConverter {
+extension Double: SerranoValueConverter {
 	public var metalUInt: MetalUInt {
 		return MetalUInt(self)
 	}
@@ -155,6 +166,10 @@ extension Double: MetalValueConverter {
 	
 	public var metalFloat: MetalFloat {
 		return MetalFloat(self)
+	}
+	
+	public var vDSPLength: vDSP_Length {
+		return vDSP_Length(self)
 	}
 }
 
