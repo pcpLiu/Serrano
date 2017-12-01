@@ -14,139 +14,150 @@ import XCTest
 @testable import Serrano
 
 func configureGraph() -> ForwardGraph {
-	let g = ForwardGraph()
-	
-	// input
-	let input = g.tensor(shape: TensorShape(dataType: .int, shape: [416, 416, 3]))
-	
-	// conv block 1
-	let (out_conv1,_, _) = g.operation(inputs: [input],
-									   op: ConvOperator2D(numFilters: 16, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: input.shape))
-	
-	let (out_act1, _, _) = g.operation(inputs: out_conv1,
-									   op: LeakyReLUOperator(alpha: 0.1))
-	
-	let (out_poo1, _, _) = g.operation(inputs: out_act1,
-									   op: MaxPool2DOperator(kernelSize: [2, 2],
-															 channelPosition: TensorChannelOrder.Last,
-															 paddingMode: PaddingMode.Same))
+    let g = ForwardGraph()
+    
+    // input
+    let input = g.tensor(shape: TensorShape(dataType: .int, shape: [416, 416, 3]))
+    
+    // conv block 1
+    let (out_conv1,_, _) = g.operation(inputs: [input],
+                                       op: ConvOperator2D(numFilters: 16, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: input.shape))
+    let (batchnorm1, _, _) = g.operation(inputs: out_conv1,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv1.first!.shape))
+    let (out_act1, _, _) = g.operation(inputs: batchnorm1,
+                                       op: LeakyReLUOperator(alpha: 0.1))
+    
+    let (out_poo1, _, _) = g.operation(inputs: out_act1,
+                                       op: MaxPool2DOperator(kernelSize: [2, 2],
+                                                             channelPosition: TensorChannelOrder.Last,
+                                                             paddingMode: PaddingMode.Same))
 
-	// conv block 2
-	let (out_conv2,_, _) = g.operation(inputs: out_poo1,
-									   op: ConvOperator2D(numFilters: 32, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: out_poo1.first!.shape))
+    // conv block 2
+    let (out_conv2,_, _) = g.operation(inputs: out_poo1,
+                                       op: ConvOperator2D(numFilters: 32, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: out_poo1.first!.shape))
+    let (batchnorm2, _, _) = g.operation(inputs: out_conv2,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv2.first!.shape))
+    let (out_act2, _, _) = g.operation(inputs: batchnorm2,
+                                       op: LeakyReLUOperator(alpha: 0.1))
+    let (out_poo2, _, _) = g.operation(inputs: out_act2,
+                                       op: MaxPool2DOperator(kernelSize: [2, 2],
+                                                             channelPosition: TensorChannelOrder.Last,
+                                                             paddingMode: PaddingMode.Same))
 
-	let (out_act2, _, _) = g.operation(inputs: out_conv2,
-									   op: LeakyReLUOperator(alpha: 0.1))
+    // conv block 3
+    let (out_conv3,_, _) = g.operation(inputs: out_poo2,
+                                       op: ConvOperator2D(numFilters: 64, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: out_poo2.first!.shape))
+    let (batchnorm3, _, _) = g.operation(inputs: out_conv3,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv3.first!.shape))
+    let (out_act3, _, _) = g.operation(inputs: batchnorm3,
+                                       op: LeakyReLUOperator(alpha: 0.1))
+    let (out_poo3, _, _) = g.operation(inputs: out_act3,
+                                       op: MaxPool2DOperator(kernelSize: [2, 2],
+                                                             channelPosition: TensorChannelOrder.Last,
+                                                             paddingMode: PaddingMode.Same))
 
-	let (out_poo2, _, _) = g.operation(inputs: out_act2,
-									   op: MaxPool2DOperator(kernelSize: [2, 2],
-															 channelPosition: TensorChannelOrder.Last,
-															 paddingMode: PaddingMode.Same))
+    // conv block 4
+    let (out_conv4,_, _) = g.operation(inputs: out_poo3,
+                                       op: ConvOperator2D(numFilters: 128, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: out_poo3.first!.shape))
+    let (batchnorm4, _, _) = g.operation(inputs: out_conv4,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv4.first!.shape))
+    let (out_act4, _, _) = g.operation(inputs: batchnorm4,
+                                       op: LeakyReLUOperator(alpha: 0.1))
+    let (out_poo4, _, _) = g.operation(inputs: out_act4,
+                                       op: MaxPool2DOperator(kernelSize: [2, 2],
+                                                             channelPosition: TensorChannelOrder.Last,
+                                                             paddingMode: PaddingMode.Same))
 
-	// conv block 3
-	let (out_conv3,_, _) = g.operation(inputs: out_poo2,
-									   op: ConvOperator2D(numFilters: 64, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: out_poo2.first!.shape))
+    // conv block 5
+    let (out_conv5,_, _) = g.operation(inputs: out_poo4,
+                                       op: ConvOperator2D(numFilters: 256, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: out_poo4.first!.shape))
+    let (batchnorm5, _, _) = g.operation(inputs: out_conv5,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv5.first!.shape))
+    let (out_act5, _, _) = g.operation(inputs: batchnorm5,
+                                       op: LeakyReLUOperator(alpha: 0.1))
+    let (out_poo5, _, _) = g.operation(inputs: out_act5,
+                                       op: MaxPool2DOperator(kernelSize: [2, 2],
+                                                             channelPosition: TensorChannelOrder.Last,
+                                                             paddingMode: PaddingMode.Same))
 
-	let (out_act3, _, _) = g.operation(inputs: out_conv3,
-									   op: LeakyReLUOperator(alpha: 0.1))
+    // conv block 6
+    let (out_conv6,_, _) = g.operation(inputs: out_poo5,
+                                       op: ConvOperator2D(numFilters: 512, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: out_poo5.first!.shape))
+    let (batchnorm6, _, _) = g.operation(inputs: out_conv6,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv6.first!.shape))
+    let (out_act6, _, _) = g.operation(inputs: batchnorm6,
+                                       op: LeakyReLUOperator(alpha: 0.1))
+    let (out_poo6, _, _) = g.operation(inputs: out_act6,
+                                       op: MaxPool2DOperator(kernelSize: [2, 2],
+                                                             stride: [1, 1],
+                                                             channelPosition: TensorChannelOrder.Last,
+                                                             paddingMode: PaddingMode.Same))
 
-	let (out_poo3, _, _) = g.operation(inputs: out_act3,
-									   op: MaxPool2DOperator(kernelSize: [2, 2],
-															 channelPosition: TensorChannelOrder.Last,
-															 paddingMode: PaddingMode.Same))
+    // conv block 7
+    let (out_conv7,_, _) = g.operation(inputs: out_poo6,
+                                       op: ConvOperator2D(numFilters: 1024, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: out_poo6.first!.shape))
+    let (batchnorm7, _, _) = g.operation(inputs: out_conv7,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv7.first!.shape))
+    let (out_act7, _, _) = g.operation(inputs: batchnorm7,
+                                       op: LeakyReLUOperator(alpha: 0.1))
 
-	// conv block 4
-	let (out_conv4,_, _) = g.operation(inputs: out_poo3,
-									   op: ConvOperator2D(numFilters: 128, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: out_poo3.first!.shape))
+    /////////
 
-	let (out_act4, _, _) = g.operation(inputs: out_conv4,
-									   op: LeakyReLUOperator(alpha: 0.1))
+    // conv block  8
+    let (out_conv8,_, _) = g.operation(inputs: out_act7,
+                                       op: ConvOperator2D(numFilters: 512, kernelSize: [3, 3],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          biasEnabled: false,
+                                                          inputShape: out_act7.first!.shape))
+    let (batchnorm8, _, _) = g.operation(inputs: out_conv8,
+                                         op: BatchNormOperator(channelOrder: TensorChannelOrder.Last,
+                                                               inputShape: out_conv8.first!.shape))
+    let (out_act8, _, _) = g.operation(inputs: batchnorm8,
+                                       op: LeakyReLUOperator(alpha: 0.1))
 
-	let (out_poo4, _, _) = g.operation(inputs: out_act4,
-									   op: MaxPool2DOperator(kernelSize: [2, 2],
-															 channelPosition: TensorChannelOrder.Last,
-															 paddingMode: PaddingMode.Same))
-
-	// conv block 5
-	let (out_conv5,_, _) = g.operation(inputs: out_poo4,
-									   op: ConvOperator2D(numFilters: 256, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: out_poo4.first!.shape))
-
-	let (out_act5, _, _) = g.operation(inputs: out_conv5,
-									   op: LeakyReLUOperator(alpha: 0.1))
-
-	let (out_poo5, _, _) = g.operation(inputs: out_act5,
-									   op: MaxPool2DOperator(kernelSize: [2, 2],
-															 channelPosition: TensorChannelOrder.Last,
-															 paddingMode: PaddingMode.Same))
-
-	// conv block 6
-	let (out_conv6,_, _) = g.operation(inputs: out_poo5,
-									   op: ConvOperator2D(numFilters: 512, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: out_poo5.first!.shape))
-
-	let (out_act6, _, _) = g.operation(inputs: out_conv6,
-									   op: LeakyReLUOperator(alpha: 0.1))
-
-	let (out_poo6, _, _) = g.operation(inputs: out_act6,
-									   op: MaxPool2DOperator(kernelSize: [2, 2],
-															 stride: [1, 1],
-															 channelPosition: TensorChannelOrder.Last,
-															 paddingMode: PaddingMode.Same))
-
-	// conv block 7
-	let (out_conv7,_, _) = g.operation(inputs: out_poo6,
-									   op: ConvOperator2D(numFilters: 1024, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: out_poo6.first!.shape))
-
-	let (out_act7, _, _) = g.operation(inputs: out_conv7,
-									   op: LeakyReLUOperator(alpha: 0.1))
-
-	/////////
-
-	// conv block  8
-	let (out_conv8,_, _) = g.operation(inputs: out_act7,
-									   op: ConvOperator2D(numFilters: 512, kernelSize: [3, 3],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  biasEnabled: false,
-														  inputShape: out_act7.first!.shape))
-
-	let (out_act8, _, _) = g.operation(inputs: out_conv8,
-									   op: LeakyReLUOperator(alpha: 0.1))
-
-	//  output
-	let (out_conv9,_, _) = g.operation(inputs: out_act8,
-									   op: ConvOperator2D(numFilters: 425, kernelSize: [1, 1],
-														  padMode: PaddingMode.Same,
-														  channelPosition: TensorChannelOrder.Last,
-														  inputShape: out_act8.first!.shape))
-	return g
+    //  output
+    let (out_conv9,_, _) = g.operation(inputs: out_act8,
+                                       op: ConvOperator2D(numFilters: 425, kernelSize: [1, 1],
+                                                          padMode: PaddingMode.Same,
+                                                          channelPosition: TensorChannelOrder.Last,
+                                                          inputShape: out_act8.first!.shape))
+    return g
 }
 
 class TinyYOLO: XCTestCase {
@@ -161,19 +172,19 @@ class TinyYOLO: XCTestCase {
         super.tearDown()
     }
     
-	func testYOLO() {
-		SerranoLogging.release = true
-		
-		let _ = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU)
-		let yolo = configureGraph()
-		yolo.forwardPrepare()
-		
-		for _ in 0..<1 {
-			let start = CFAbsoluteTimeGetCurrent()
-			yolo.forward(mode: .GPU)
-			print("Forward Execution Time : \((CFAbsoluteTimeGetCurrent() - start) * 100) ms")
-			print("===================")
-		}
-	}
+    func testYOLO() {
+        SerranoLogging.release = true
+        
+        let _ = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU)
+        let yolo = configureGraph()
+        yolo.forwardPrepare()
+        
+        for _ in 0..<1 {
+            let start = CFAbsoluteTimeGetCurrent()
+            yolo.forward(mode: .GPU)
+            print("Forward Execution Time : \((CFAbsoluteTimeGetCurrent() - start) * 100) ms")
+            print("===================")
+        }
+    }
     
 }
