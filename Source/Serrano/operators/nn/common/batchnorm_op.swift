@@ -25,13 +25,15 @@ public struct BatchNormInfo {
     var channels: MetalInt
     var inputWidth: MetalInt
     var inputHeight: MetalInt
+    var epsilon: MetalFloat
     
-    public static func makeBatchNormInfo(channelOrder: TensorChannelOrder, input: Tensor) -> BatchNormInfo {
+    public static func makeBatchNormInfo(channelOrder: TensorChannelOrder, epsilon: Float, input: Tensor) -> BatchNormInfo {
         let (channel, height, width) = parseImgChannelShapeInfo(channelOrder, shapeArray: input.shape.shapeArray)
         return BatchNormInfo(channelPosition: channelOrder.rawValue.metalShort,
                              channels: channel.metalInt,
                              inputWidth: width.metalInt,
-                             inputHeight: height.metalInt)
+                             inputHeight: height.metalInt,
+                             epsilon: epsilon.metalFloat)
     }
 }
 
@@ -313,6 +315,10 @@ public class BatchNormOperator: ComputableOperator {
     
     /// CPU in inference
     internal func cpu_inference() {
+        //TODO: FIX ERROR
+        // sqrt(var + epsilon)
+//        let
+        
         // get reciprocal of movingVar
         let movingVarienceReciprocal = Tensor(repeatingValue: 0.0, tensorShape: self.movingVar!.shape)
         var count = Int32(self.movingVar!.count)
@@ -421,7 +427,7 @@ public class BatchNormOperator: ComputableOperator {
             
             let inputBufferResource = input.gpuBufferResource()
             let outputBufferResource = output.gpuBufferResource()
-            var info = BatchNormInfo.makeBatchNormInfo(channelOrder: self.channelOrder, input: input)
+            var info = BatchNormInfo.makeBatchNormInfo(channelOrder: self.channelOrder, epsilon: self.epsilon, input: input)
             
             let encoder = commandBuffer!.makeComputeCommandEncoder()
             encoder.setComputePipelineState(kernel!)
