@@ -1,11 +1,11 @@
 Pod::Spec.new do |spec|
   spec.name         = 'Serrano'
-  spec.version      = '0.1.5-alpha'
+  spec.version      = '0.1.6-alpha'
   spec.license      = { :type => 'MIT' }
   spec.homepage     = 'https://github.com/pcpLiu/Serrano'
   spec.authors      = { 'Tim Liu' => 'pcpliu.dev@gmail.com' }
   spec.summary      = 'Graph computation library for iOS'
-  spec.source       = { :git => 'https://github.com/pcpLiu/Serrano.git', :tag => '0.1.5-alpha' }
+  spec.source       = { :git => 'https://github.com/pcpLiu/Serrano.git', :tag => '0.1.6-alpha' }
   spec.module_name  = 'Serrano'
   spec.documentation_url = 'http://serrano-lib.org'
 
