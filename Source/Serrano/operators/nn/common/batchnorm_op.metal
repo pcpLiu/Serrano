@@ -15,6 +15,7 @@ typedef struct {
 	int channels;
 	int inputWidth;
 	int inputHeight;
+    float epsilon;
 } BatchNormInfo;
 
 void kernel batchNorm_inference(constant float* input        [[ buffer(0) ]],
@@ -38,5 +39,5 @@ void kernel batchNorm_inference(constant float* input        [[ buffer(0) ]],
 		inputOutputOffset = thread_id.z * info.inputHeight * info.inputWidth + thread_id.y * info.inputWidth + thread_id.x;
 	}
 	
-	output[inputOutputOffset] = scale[thread_id.z] * (input[inputOutputOffset] - mean[thread_id.z]) / var[thread_id.z]  + offset[thread_id.z];
+	output[inputOutputOffset] = scale[thread_id.z] * (input[inputOutputOffset] - mean[thread_id.z]) / sqrt(var[thread_id.z] + info.epsilon) + offset[thread_id.z];
 }
