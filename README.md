@@ -57,6 +57,11 @@ The guides and APIs are hosted at [http://serrano-lib.org](http://serrano-lib.or
 
 Check [Serrano/Examples/Graph/VGG16.swift](https://github.com/pcpLiu/Serrano/blob/master/Examples/Graph/VGG16.swift) seeing how to use Graph API to construct a forward VGG16.
 
+#### TinyYOLO Demo Project
+Check [Serrano-TinyYOLO](https://github.com/pcpLiu/Serrano-TinyYOLO), an iOS App do object detection on taken photo.
+<img src="https://github.com/pcpLiu/Serrano-TinyYOLO/blob/master/demo_result.jpg" width="500" />
+
+
 ## Questions && Issues
  :bangbang: Please __only open [bug]/[feature request] related issues__ in THIS repo and follow this [issue guide](). :bangbang: 
 
