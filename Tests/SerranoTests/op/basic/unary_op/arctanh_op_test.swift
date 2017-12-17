@@ -20,13 +20,26 @@ class ArctanhOpDelegate: OperatorDelegateConvUnaryOp {
                 let val = atanh(readerReader[i])
                 if val.isNaN || val.isInfinite || resultReader[i].isNaN || resultReader[i].isInfinite { continue }
                 if abs(val) < 0.001 {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
-				} else {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
-				}
+                    XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
+                } else {
+                    XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
+                }
             }
         }
         self.init(block: blcok)
+        // grad: 1 / (1 - x^2)
+        self.gradVerifyBlock = {(grads: [String : DataSymbolSupportedDataType], inputs:[Tensor]) -> Void in
+            for (index, input) in inputs.enumerated() {
+                let resultGrad = grads["input_\(index)"]!.tensorValue
+                for i in 0..<input.count {
+                    let val = 1.0 / (1 - input.floatValueReader[i] * input.floatValueReader[i])
+                    if val.isNaN || val.isInfinite {
+                        continue
+                    }
+                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: max(0.001, abs(val*0.001)))
+                }
+            }
+        }
     }
 }
 

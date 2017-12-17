@@ -22,15 +22,24 @@ class RsqrtOpDelegate: OperatorDelegateConvUnaryOp {
                 var val = sqrt(readerReader[i])
                 if val == 0.0 { continue }
                 val = 1 / val
-				if val.isNaN || val.isInfinite || resultReader[i].isNaN || resultReader[i].isInfinite { continue }
-                if abs(val) < 0.001 {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
-				} else {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
-				}
+                if val.isNaN || val.isInfinite || resultReader[i].isNaN || resultReader[i].isInfinite { continue }
+                XCTAssertEqual(val, resultReader[i], accuracy: max(0.001, abs(val*0.001)))
             }
         }
         self.init(block: blcok)
+        // grad: -1 / (2 * x^1.5)
+        self.gradVerifyBlock = {(grads: [String : DataSymbolSupportedDataType], inputs:[Tensor]) -> Void in
+            for (index, input) in inputs.enumerated() {
+                let resultGrad = grads["input_\(index)"]!.tensorValue
+                for i in 0..<input.count {
+                    let val:Float = -1 / (2 * pow(input.floatValueReader[i], 1.5))
+                    if val.isNaN || val.isInfinite {
+                        continue
+                    }
+                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: max(0.001, abs(val*0.001)))
+                }
+            }
+        }
     }
 }
 

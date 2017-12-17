@@ -20,10 +20,23 @@ class RoundOpDelegate: OperatorDelegateConvUnaryOp {
             let resultReader = resultTensor.floatValueReader
             for i in 0..<rawTensor.count {
                 let val = resultReader[i].rounded(.down)
-                XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.0001))
+                XCTAssertEqual(val, resultReader[i], accuracy: max(0.001, abs(val*0.001)))
             }
         }
         self.init(block: blcok)
+        // grad: 0
+        self.gradVerifyBlock = {(grads: [String : DataSymbolSupportedDataType], inputs:[Tensor]) -> Void in
+            for (index, input) in inputs.enumerated() {
+                let resultGrad = grads["input_\(index)"]!.tensorValue
+                for i in 0..<input.count {
+                    let val:Float = 0.0
+                    if val.isNaN || val.isInfinite {
+                        continue
+                    }
+                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: max(0.001, abs(val*0.001)))
+                }
+            }
+        }
     }
 }
 

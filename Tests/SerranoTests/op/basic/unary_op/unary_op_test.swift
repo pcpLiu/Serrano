@@ -16,6 +16,8 @@ public class OperatorDelegateConvUnaryOp: OperatorDelegateConv {
     
     public var compareBlock: (Tensor, Tensor) -> Void
     
+    public var gradVerifyBlock: (([String : DataSymbolSupportedDataType], [Tensor]) -> Void)?
+
     required public convenience init(compareBlock: ((Tensor, Tensor) -> Void)?) {
         let blcok =  {(rawTensor: Tensor, resultTensor: Tensor) -> Void in
             print()
@@ -35,6 +37,10 @@ public class OperatorDelegateConvUnaryOp: OperatorDelegateConv {
         for i in 0..<self.resultTensors.count {
             self.compareBlock(self.veryfyTensors[i], self.resultTensors[i])
         }
+    }
+    
+    override public func compareGrads() {
+        self.gradVerifyBlock!(self.resultGrads, self.veryfyTensors)
     }
 }
 
@@ -66,8 +72,9 @@ public class UnarOpTest<OpDelegate: OperatorDelegateConvUnaryOp, UnaryOp: UnaryO
     public func  testAll() {
         self.testInit()
         self.testOuputShapesCheck()
-		self.testInputOutputTensorsCheck()
+        self.testInputOutputTensorsCheck()
         self.testCompute()
+        self.testGradCompute()
     }
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,72 +117,72 @@ public class UnarOpTest<OpDelegate: OperatorDelegateConvUnaryOp, UnaryOp: UnaryO
             }
         }
     }
-	
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	/**
-	Test:
-	public func inputOutputTensorsCheck() -> (check: Bool, msg: String) 
-	*/
-	func testInputOutputTensorsCheck() {
-		let numCase = 50
-		let op = UnaryOp()
-		for i in 0..<numCase {
-			print("Test case \(i+1)...")
-			
-			var inputTensors: [Tensor]? = [Tensor]()
-			var outputTensors: [Tensor]? = [Tensor]()
-			
-			// generate valid input and output tensors
-			for _ in 0..<randomInt([1, 4]) {
-				inputTensors!.append(randomTensor(dimensions: 2, dimensionSizeRange: [10, 20], dataType: .float))
-				outputTensors!.append(randomTensor(fromShape: inputTensors!.last!.shape))
-				print("Generate input tensor: \(inputTensors!.last!.description)")
-				print("Generate output tensor: \(outputTensors!.last!.description)")
-			}
-			
-			// setup invalid cases
-			if i % 2 == 0 {
-				let randCase = randomInt([0, 4])
-				if randCase % 4 == 0 {
-					//input nil
-					inputTensors = nil
-					print("Set input tensors nil")
-				} else if randCase % 4 == 1 {
-					// output nil
-					outputTensors = nil
-					print("Set output tensors nil")
-				} else if randCase % 4 == 2 {
-					// count not equal
-					outputTensors!.removeLast()
-					print("Set output tensors num not equal")
-				} else {
-					// output shape not valid
-					var shape = outputTensors!.last!.shape.shapeArray
-					shape.removeLast()
-					let invalidShape =  TensorShape(dataType: .float, shape: shape)
-					outputTensors!.removeLast()
-					outputTensors!.append(randomTensor(fromShape: invalidShape))
-					print("Set output tensors shape not valid")
-				}
-			}
-			
-			op.inputTensors = inputTensors
-			op.outputTensors = outputTensors
-			
-			let (pass , msg) = op.inputOutputTensorsCheck()
-			if i % 2 != 0 {
-				XCTAssertTrue(pass)
-			} else {
-				XCTAssertFalse(pass)
-				print(msg)
-			}
-			
-			SerranoResourceManager.globalManager.releaseAllResources()
-			print("Finish Test case \(i+1)\n\n")
-		}
-	}
-	
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+    Test:
+    public func inputOutputTensorsCheck() -> (check: Bool, msg: String)
+    */
+    func testInputOutputTensorsCheck() {
+        let numCase = 50
+        let op = UnaryOp()
+        for i in 0..<numCase {
+            print("Test case \(i+1)...")
+            
+            var inputTensors: [Tensor]? = [Tensor]()
+            var outputTensors: [Tensor]? = [Tensor]()
+            
+            // generate valid input and output tensors
+            for _ in 0..<randomInt([1, 4]) {
+                inputTensors!.append(randomTensor(dimensions: 2, dimensionSizeRange: [10, 20], dataType: .float))
+                outputTensors!.append(randomTensor(fromShape: inputTensors!.last!.shape))
+                print("Generate input tensor: \(inputTensors!.last!.description)")
+                print("Generate output tensor: \(outputTensors!.last!.description)")
+            }
+            
+            // setup invalid cases
+            if i % 2 == 0 {
+                let randCase = randomInt([0, 4])
+                if randCase % 4 == 0 {
+                    //input nil
+                    inputTensors = nil
+                    print("Set input tensors nil")
+                } else if randCase % 4 == 1 {
+                    // output nil
+                    outputTensors = nil
+                    print("Set output tensors nil")
+                } else if randCase % 4 == 2 {
+                    // count not equal
+                    outputTensors!.removeLast()
+                    print("Set output tensors num not equal")
+                } else {
+                    // output shape not valid
+                    var shape = outputTensors!.last!.shape.shapeArray
+                    shape.removeLast()
+                    let invalidShape =  TensorShape(dataType: .float, shape: shape)
+                    outputTensors!.removeLast()
+                    outputTensors!.append(randomTensor(fromShape: invalidShape))
+                    print("Set output tensors shape not valid")
+                }
+            }
+            
+            op.inputTensors = inputTensors
+            op.outputTensors = outputTensors
+            
+            let (pass , msg) = op.inputOutputTensorsCheck()
+            if i % 2 != 0 {
+                XCTAssertTrue(pass)
+            } else {
+                XCTAssertFalse(pass)
+                print(msg)
+            }
+            
+            SerranoResourceManager.globalManager.releaseAllResources()
+            print("Finish Test case \(i+1)\n\n")
+        }
+    }
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /**
@@ -183,9 +190,8 @@ public class UnarOpTest<OpDelegate: OperatorDelegateConvUnaryOp, UnaryOp: UnaryO
      func compute(withInputTensors tensors:[Tensor], computationMode: OperatorComputationMode = SerranoEngine.configuredEngine.defaultComputationMode) -> [Tensor]
      func compute(asyncWithInputTensors tensors:[Tensor], computationMode: OperatorComputationMode = SerranoEngine.configuredEngine.defaultComputationMode)
      */
-    
     func testCompute() {
-        let caseNum = 10
+        let caseNum = 5
         let op = UnaryOp()
         
         // configure engine
@@ -204,16 +210,15 @@ public class UnarOpTest<OpDelegate: OperatorDelegateConvUnaryOp, UnaryOp: UnaryO
             // generate tensors
             var inputTensors = [Tensor]()
             var outputTensors = [Tensor]()
-			
-			for _ in 0..<randomInt([1, 3]) {
-				let shape = randomShape(dimensions: 2, dimensionSizeRange: [100, 200], dataType: .float)
-				inputTensors.append(randomTensor(fromShape: shape))
-				outputTensors.append(randomTensor(fromShape: shape))
-				print("Generate Input tensor: \(inputTensors.last!.description)")
-				print("Generate Output tensor: \(outputTensors.last!.description)")
-			}
-				
-			
+            
+            for _ in 0..<randomInt([1, 3]) {
+                let shape = randomShape(dimensions: 2, dimensionSizeRange: [100, 200], dataType: .float)
+                inputTensors.append(randomTensor(fromShape: shape))
+                outputTensors.append(randomTensor(fromShape: shape))
+                print("Generate Input tensor: \(inputTensors.last!.description)")
+                print("Generate Output tensor: \(outputTensors.last!.description)")
+            }
+            
             op.inputTensors = inputTensors
             op.outputTensors = outputTensors
             delegate.veryfyTensors = inputTensors
@@ -222,27 +227,87 @@ public class UnarOpTest<OpDelegate: OperatorDelegateConvUnaryOp, UnaryOp: UnaryO
             let outputtesnor_hash_values  = op.outputTensors!.map { $0._dataMemoryBaseAdrress.hashValue }
             print("inputtensor_hash_values: \(inputtensor_hash_values)")
             print("outputtesnor_hash_values: \(outputtesnor_hash_values)")
-			
-			
-			
+            
             if i % 2 == 0 {
                 print("Run on CPU")
-				workingGroup.enter()
+                workingGroup.enter()
                 op.computeAsync( .CPU)
             } else {
                 print("Run on GPU")
-				if !SerranoEngine.configuredEngine.hasAvailableGPU() {
-					print("No gpu available, give up Test \(i+1)\n\n\n)")
-					continue
-				}
-				workingGroup.enter()
+                if !SerranoEngine.configuredEngine.hasAvailableGPU() {
+                    print("No gpu available, give up Test \(i+1)\n\n\n)")
+                    continue
+                }
+                workingGroup.enter()
                 op.computeAsync( .GPU)
             }
-			
             
             workingGroup.wait()
-			
-			SerranoResourceManager.globalManager.releaseAllResources()
+            
+            print("Finish Test \(i+1)\n\n\n")
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     Test:
+     public func gradCompute(_ computationMode: OperatorComputationMode) -> [String: DataSymbolSupportedDataType]
+     public func gradComputAsync(_ computationMode: OperatorComputationMode)
+     */
+     func testGradCompute() {
+        let caseNum = 5
+        let op = UnaryOp()
+        
+        // configure engine
+        let (_, msg) = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU, serranoCommandQueue: nil, serranoMTLLibrary: nil, systemDefaultGPUDevice: nil)
+        
+        // setup delegate
+        let delegate = OpDelegate(compareBlock: nil)
+        let workingGroup = DispatchGroup()
+        delegate.dispatchGroup = workingGroup
+        op.computationDelegate = delegate
+        
+        
+        for i in 0..<caseNum {
+            print("Test case \(i+1)...")
+            
+            var inputTensors = [Tensor]()
+            var outputTensors = [Tensor]()
+            
+            for _ in 0..<randomInt([1, 3]) {
+                let shape = randomShape(dimensions: 2, dimensionSizeRange: [100, 200], dataType: .float)
+                inputTensors.append(randomTensor(fromShape: shape))
+                outputTensors.append(randomTensor(fromShape: shape))
+                print("Generate Input tensor: \(inputTensors.last!.description)")
+                print("Generate Output tensor: \(outputTensors.last!.description)")
+            }
+            
+            op.inputTensors = inputTensors
+            op.outputTensors = outputTensors
+            delegate.veryfyTensors = inputTensors
+            
+            let inputtensor_hash_values = op.inputTensors!.map { $0._dataMemoryBaseAdrress.hashValue }
+            let outputtesnor_hash_values  = op.outputTensors!.map { $0._dataMemoryBaseAdrress.hashValue }
+            print("inputtensor_hash_values: \(inputtensor_hash_values)")
+            print("outputtesnor_hash_values: \(outputtesnor_hash_values)")
+            
+            if i % 2 == 0 {
+                print("Run on CPU")
+                op.compute( .CPU)
+                workingGroup.enter()
+                op.gradComputAsync(.CPU)
+            } else {
+                print("Run on GPU")
+                if !SerranoEngine.configuredEngine.hasAvailableGPU() {
+                    print("No gpu available, give up Test \(i+1)\n\n\n)")
+                    continue
+                }
+                op.compute( .GPU)
+                workingGroup.enter()
+                op.gradComputAsync(.GPU)
+            }
+            workingGroup.wait()
             print("Finish Test \(i+1)\n\n\n")
         }
     }

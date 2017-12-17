@@ -13,43 +13,49 @@ import Metal
 
 
 public class OperatorDelegateConvBinaryOp: OperatorDelegateConv {
-	
+    
     public var compareBlock: ([Tensor], Tensor) -> Void
-	
+    
+    public var gradVerifyBlock: (([String : DataSymbolSupportedDataType], [Tensor]) -> Void)?
+    
     required public convenience init(compareBlock: (([Tensor], Tensor) -> Void)?) {
         let blcok =  {(inputTensors: [Tensor], resultTensor: Tensor) -> Void in
             print("NEED OVERRIDE")
         }
         self.init(block: blcok)
     }
-	
+    
     // override this func
     public init(block: @escaping ([Tensor], Tensor) -> Void) {
         self.compareBlock = block
         super.init()
     }
-	
+    
     override public func compare() {
         XCTAssertTrue(self.resultTensors.count == 1)
         XCTAssertTrue(self.resultTensors.first!.count == self.veryfyTensors.first!.count)
-		
+        
         self.compareBlock(self.veryfyTensors, self.resultTensors.first!)
+    }
+    
+    override public func compareGrads() {
+        self.gradVerifyBlock!(self.resultGrads, self.veryfyTensors)
     }
 }
 
 public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: BinaryOperator>: XCTestCase {
-	
+    
     override public func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
-		
+        
     }
-	
+    
     override public func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-	
+    
     //    func testExample() {
     //        // This is an example of a functional test case.
     //        // Use XCTAssert and related functions to verify your tests produce the correct results.
@@ -61,21 +67,16 @@ public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: Bi
     //            // Put the code you want to measure the time of here.
     //        }
     //    }
-	
+    
     public func  testAll() {
         self.testInit()
-		
         self.testOuputShapesCheck()
-		
-        //        self.testCPU()
-        //
-        //        self.testGPU()
-        //
         self.testCompute()
+        self.testGradCompute()
     }
-	
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+    
     /**
      Test init functions
      */
@@ -89,9 +90,9 @@ public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: Bi
             print("label: \(label), \(op.operatorLabel)")
         }
     }
-	
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+    
     /**
      Test:
      public func outputShape(shapeArray shapes: [TensorShape]) -> [TensorShape]?
@@ -101,12 +102,12 @@ public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: Bi
         for i in 0..<numCase {
             print("Test case \(i+1)")
             let op = BinaryOp()
-			
+            
             var valid = true
             if i % 3 == 0 {
                 valid = false
             }
-			
+            
             var shapes = [TensorShape]()
             if !valid {
                 if i % 2 == 0 {
@@ -118,17 +119,17 @@ public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: Bi
                         shapes.append(randomShape(dimensions: randomInt([1, 5]), dimensionSizeRange: [1, 1000], dataType: .float))
                     }
                 }
-				
+                
             } else {
                 let shape = randomShape(dimensions: 2, dimensionSizeRange: [10, 150], dataType: .float)
                 for _ in 0..<2 {
                     shapes.append(shape)
                 }
             }
-			
+            
             // compute
             let outShape = op.outputShape(shapeArray: shapes)?.first
-			
+            
             if valid {
                 XCTAssertNotNil(outShape)
                 XCTAssertTrue(outShape! == shapes[0])
@@ -138,36 +139,36 @@ public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: Bi
             }
         }
     }
-	
-	
+    
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+    
     /**
      Test:
      func compute(withInputTensors tensors:[Tensor], computationMode: OperatorComputationMode = SerranoEngine.configuredEngine.defaultComputationMode) -> [Tensor]
      func compute(asyncWithInputTensors tensors:[Tensor], computationMode: OperatorComputationMode = SerranoEngine.configuredEngine.defaultComputationMode)
      */
-	
+    
     func testCompute() {
         let caseNum = 10
         let op = BinaryOp()
-		
-		// configure engine
-		let (_, _) = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU, serranoCommandQueue: nil, serranoMTLLibrary: nil, systemDefaultGPUDevice: nil)
-		
+        
+        // configure engine
+        let (_, _) = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU, serranoCommandQueue: nil, serranoMTLLibrary: nil, systemDefaultGPUDevice: nil)
+        
         // setup delegate
         let delegate = OpDelegate(compareBlock: nil)
         let workingGroup = DispatchGroup()
         delegate.dispatchGroup = workingGroup
         op.computationDelegate = delegate
-		
-		
+        
+        
         for i in 0..<caseNum {
             print("Test case \(i+1)...")
-			
+            
             // generate tensors
-			var inputTensors = [Tensor]()
-			var outputTensors = [Tensor]()
+            var inputTensors = [Tensor]()
+            var outputTensors = [Tensor]()
             var shape: TensorShape
             if i < 8 { // smaller tensors
                 shape = randomShape(dimensions: 2, dimensionSizeRange: [10, 20], dataType: .float)
@@ -178,28 +179,91 @@ public class BinaryOpTest<OpDelegate: OperatorDelegateConvBinaryOp, BinaryOp: Bi
                 inputTensors.append(randomTensor(fromShape: shape))
                 print("Generate Input tensor: \(inputTensors.last!.description)")
             }
-			outputTensors.append(randomTensor(fromShape: shape))
-			
+            outputTensors.append(randomTensor(fromShape: shape))
+            
             delegate.veryfyTensors = inputTensors
-			op.inputTensors = inputTensors
-			op.outputTensors = outputTensors
-			
+            op.inputTensors = inputTensors
+            op.outputTensors = outputTensors
+            
             if i % 2 == 0 {
                 print("Run on CPU")
-				workingGroup.enter()
+                workingGroup.enter()
                 op.computeAsync( .CPU)
             } else {
                 print("Run on GPU")
-				if !SerranoEngine.configuredEngine.hasAvailableGPU() {
-					print("No gpu available, give up Test \(i+1)\n\n\n)")
-					continue
-				}
-				workingGroup.enter()
+                if !SerranoEngine.configuredEngine.hasAvailableGPU() {
+                    print("No gpu available, give up Test \(i+1)\n\n\n)")
+                    continue
+                }
+                workingGroup.enter()
                 op.computeAsync( .GPU)
             }
-			
+            
             workingGroup.wait()
-			SerranoResourceManager.globalManager.releaseAllResources()
+            SerranoResourceManager.globalManager.releaseAllResources()
+            print("Finish Test \(i+1)\n\n\n")
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     Test:
+     public func gradCompute(_ computationMode: OperatorComputationMode) -> [String: DataSymbolSupportedDataType]
+     public func gradComputAsync(_ computationMode: OperatorComputationMode)
+     */
+    func testGradCompute() {
+        let caseNum = 5
+        let op = BinaryOp()
+        
+        // configure engine
+        let (_, _) = SerranoEngine.configuredEngine.configureEngine(computationMode: .GPU, serranoCommandQueue: nil, serranoMTLLibrary: nil, systemDefaultGPUDevice: nil)
+        
+        // setup delegate
+        let delegate = OpDelegate(compareBlock: nil)
+        let workingGroup = DispatchGroup()
+        delegate.dispatchGroup = workingGroup
+        op.computationDelegate = delegate
+        
+        for i in 0..<caseNum {
+            print("Test case \(i+1)...")
+            
+            // generate tensors
+            var inputTensors = [Tensor]()
+            var outputTensors = [Tensor]()
+            var shape: TensorShape
+            if i < 3 { // smaller tensors
+                shape = randomShape(dimensions: 2, dimensionSizeRange: [10, 20], dataType: .float)
+            } else { // large tensors
+                shape = randomShape(dimensions: 2, dimensionSizeRange: [200, 400], dataType: .float)
+            }
+            for _ in 0..<2 {
+                inputTensors.append(randomTensor(fromShape: shape))
+                print("Generate Input tensor: \(inputTensors.last!.description)")
+            }
+            outputTensors.append(randomTensor(fromShape: shape))
+            
+            delegate.veryfyTensors = inputTensors
+            op.inputTensors = inputTensors
+            op.outputTensors = outputTensors
+            
+            if i % 2 == 0 {
+                print("Run on CPU")
+                let _ = op.compute(.CPU)
+                workingGroup.enter()
+                op.gradComputAsync(.CPU)
+            } else {
+                print("Run on GPU")
+                if !SerranoEngine.configuredEngine.hasAvailableGPU() {
+                    print("No gpu available, give up Test \(i+1)\n\n\n)")
+                    continue
+                }
+                let _ = op.compute( .GPU)
+                workingGroup.enter()
+                op.gradComputAsync(.GPU)
+            }
+            
+            workingGroup.wait()
             print("Finish Test \(i+1)\n\n\n")
         }
     }

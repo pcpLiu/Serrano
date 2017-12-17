@@ -25,6 +25,19 @@ class ExpOpDelegate: OperatorDelegateConvUnaryOp {
             }
         }
         self.init(block: blcok)
+        // grad: e^x
+        self.gradVerifyBlock = {(grads: [String : DataSymbolSupportedDataType], inputs:[Tensor]) -> Void in
+            for (index, input) in inputs.enumerated() {
+                let resultGrad = grads["input_\(index)"]!.tensorValue
+                for i in 0..<input.count {
+                    let val:Float = exp(input.floatValueReader[i])
+                    if val.isNaN || val.isInfinite {
+                        continue
+                    }
+                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: max(0.001, abs(val*0.001)))
+                }
+            }
+        }
     }
 }
 
