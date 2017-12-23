@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D41073381F3B8C5400F26C1F /* resource_manager_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41073371F3B8C5400F26C1F /* resource_manager_test.swift */; };
+		D412B1731FEAC16E003B590D /* op_funcs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D412B1721FEAC16E003B590D /* op_funcs.swift */; };
 		D41692ED1EE78811002E0BE1 /* round_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41692EC1EE78811002E0BE1 /* round_op_test.swift */; };
 		D41692EF1EE78F8B002E0BE1 /* square_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41692EE1EE78F8B002E0BE1 /* square_op_test.swift */; };
 		D41692F11EE79135002E0BE1 /* rsqrt_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41692F01EE79135002E0BE1 /* rsqrt_op_test.swift */; };
@@ -397,6 +398,7 @@
 		D411F0401F7AC79F00537972 /* maxpool2d_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = maxpool2d_op_test.swift; sourceTree = "<group>"; };
 		D411F0411F7AC79F00537972 /* pool2d_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = pool2d_op_test.swift; sourceTree = "<group>"; };
 		D411F0421F7AC79F00537972 /* sumpool2d_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sumpool2d_op_test.swift; sourceTree = "<group>"; };
+		D412B1721FEAC16E003B590D /* op_funcs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = op_funcs.swift; sourceTree = "<group>"; };
 		D41692EC1EE78811002E0BE1 /* round_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = round_op_test.swift; sourceTree = "<group>"; };
 		D41692EE1EE78F8B002E0BE1 /* square_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = square_op_test.swift; sourceTree = "<group>"; };
 		D41692F01EE79135002E0BE1 /* rsqrt_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rsqrt_op_test.swift; sourceTree = "<group>"; };
@@ -884,6 +886,7 @@
 				D411F02A1F7AC75D00537972 /* loss */,
 				D4DEA5DF1EF0703B00B3DE60 /* nn */,
 				D4DEA5DE1EF0702900B3DE60 /* basic */,
+				D412B1721FEAC16E003B590D /* op_funcs.swift */,
 			);
 			path = operators;
 			sourceTree = "<group>";
@@ -1767,6 +1770,7 @@
 				D4BC25E91FAA579900AC96D5 /* unary_op.swift in Sources */,
 				D4BC25EA1FAA579900AC96D5 /* broadcast_op.swift in Sources */,
 				D4BC25EB1FAA579900AC96D5 /* transpose_op.swift in Sources */,
+				D412B1731FEAC16E003B590D /* op_funcs.swift in Sources */,
 				D4BC25EC1FAA579900AC96D5 /* transpose_op.metal in Sources */,
 				D4BC25ED1FAA579900AC96D5 /* broadcast_arithmetic_ops.swift in Sources */,
 				D4BC25EE1FAA579900AC96D5 /* binary_op.swift in Sources */,

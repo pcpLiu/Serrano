@@ -20,15 +20,24 @@ class SquareOpDelegate: OperatorDelegateConvUnaryOp {
             let resultReader = resultTensor.floatValueReader
             for i in 0..<rawTensor.count {
                 let val = readerReader[i] * readerReader[i]
-				if val.isNaN || val.isInfinite || resultReader[i].isNaN || resultReader[i].isInfinite { continue }
-                if abs(val) < 0.001 {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
-				} else {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
-				}
+                if val.isNaN || val.isInfinite || resultReader[i].isNaN || resultReader[i].isInfinite { continue }
+                XCTAssertEqual(val, resultReader[i], accuracy: max(0.001, abs(val*0.001)))
             }
         }
         self.init(block: blcok)
+        // grad: 2x
+        self.gradVerifyBlock = {(grads: [String : DataSymbolSupportedDataType], inputs:[Tensor]) -> Void in
+            for (index, input) in inputs.enumerated() {
+                let resultGrad = grads["input_\(index)"]!.tensorValue
+                for i in 0..<input.count {
+                    let val:Float = 2 * input.floatValueReader[i]
+                    if val.isNaN || val.isInfinite {
+                        continue
+                    }
+                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: max(0.001, abs(val*0.001)))
+                }
+            }
+        }
     }
 }
 
