@@ -13,7 +13,7 @@ site_author: pcpLiu
 site_description: Serrano Framework Guides
 copyright:  Copyright (c) 2017, Zhonghao (Tim) Liu
 
-site_dir: generated_docs/v0.1.5-alpha/guides
+site_dir: generated_docs/guides
 
 google_analytics:
   - 'UA-54280547-7'
@@ -44,7 +44,7 @@ extra_javascript:
   - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
 
 extra:
-    version: v0.1.5-alpha
+    version: latest
 
 
 pages:
@@ -56,6 +56,7 @@ pages:
     - 'FAQ': 'Getting started/FAQ.md'
   - Operator list:
     - Serrano operators: 'operators/about.md'
+    - Convenient function API : 'operators/function_apis.md'
     - Basic:
       - Unary: 'operators/unary.md'
       - Binary: 'operators/binary.md'
