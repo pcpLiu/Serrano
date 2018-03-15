@@ -111,16 +111,14 @@
 		D4288F341F438EE900C95AB5 /* expm1_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41692FC1EE797A9002E0BE1 /* expm1_op_test.swift */; };
 		D4288F351F438EE900C95AB5 /* exp_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41692FE1EE798BA002E0BE1 /* exp_op_test.swift */; };
 		D4288F361F438EE900C95AB5 /* matrix_mult_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42030E01EF4742000969C20 /* matrix_mult_op_test.swift */; };
-		D44225161FF3396600E9C854 /* moving_average.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225151FF3396600E9C854 /* moving_average.swift */; };
+		D42FB8EC205A0FAA003E64F9 /* moving_average.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225151FF3396600E9C854 /* moving_average.swift */; };
 		D442251B1FF3468700E9C854 /* stat_op.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442251A1FF3468700E9C854 /* stat_op.swift */; };
 		D442251E1FF3490200E9C854 /* initializer_op.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442251D1FF3490200E9C854 /* initializer_op.swift */; };
 		D44225201FFB1BCD00E9C854 /* stat_op.metal in Sources */ = {isa = PBXBuildFile; fileRef = D442251F1FFB1BCD00E9C854 /* stat_op.metal */; };
-		D44225211FFB1C1C00E9C854 /* stat_op.metal in Resources */ = {isa = PBXBuildFile; fileRef = D442251F1FFB1BCD00E9C854 /* stat_op.metal */; };
 		D44225241FFF2AFC00E9C854 /* stat_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225231FFF2AFC00E9C854 /* stat_op_test.swift */; };
 		D44225251FFF2AFC00E9C854 /* stat_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225231FFF2AFC00E9C854 /* stat_op_test.swift */; };
 		D44225271FFF2B0C00E9C854 /* stat_mean_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225261FFF2B0C00E9C854 /* stat_mean_op_test.swift */; };
 		D44225281FFF2B0C00E9C854 /* stat_mean_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225261FFF2B0C00E9C854 /* stat_mean_op_test.swift */; };
-		D442252A1FFF2B2C00E9C854 /* stat_var_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225291FFF2B2C00E9C854 /* stat_var_op_test.swift */; };
 		D442252B1FFF2B2C00E9C854 /* stat_var_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225291FFF2B2C00E9C854 /* stat_var_op_test.swift */; };
 		D442252D1FFF2B3D00E9C854 /* stat_median_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442252C1FFF2B3D00E9C854 /* stat_median_op_test.swift */; };
 		D442252E1FFF2B3D00E9C854 /* stat_median_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442252C1FFF2B3D00E9C854 /* stat_median_op_test.swift */; };
@@ -1824,6 +1822,7 @@
 				D4BC25DE1FAA579900AC96D5 /* conv_op.swift in Sources */,
 				D4BC25DF1FAA579900AC96D5 /* conv_op.metal in Sources */,
 				D4BC25E01FAA579900AC96D5 /* img2col_op.swift in Sources */,
+				D42FB8EC205A0FAA003E64F9 /* moving_average.swift in Sources */,
 				D4BC25E11FAA579900AC96D5 /* img2col_op.metal in Sources */,
 				D4BC25E21FAA579900AC96D5 /* activation_op.swift in Sources */,
 				D422A7CE1FB1623E002BA9E3 /* forward_graph.swift in Sources */,

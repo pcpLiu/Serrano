@@ -87,6 +87,9 @@ public class BatchNormOperator: ComputableOperator {
     /// If use offset tensor
     public var useOffset: Bool
     
+    /// momentum
+    public var momentum: Float 
+    
     /// offset tensor to output.
     /// Should be same dimension with feature axis.
     public var offset: Tensor?
