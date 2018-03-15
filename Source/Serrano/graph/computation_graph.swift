@@ -140,6 +140,15 @@ public class ComputationGraph: Graph {
         return self.symbols.filter {$0.value.symbolType == SymbolType.Operator}.map {$0.value as! OperatorSymbol}
     }
     
+    /// Set all operators in this graph to target forward mode
+    ///
+    /// - Parameter mode: GraphForwardMode
+    public func setOperatorsForwardMode(_ mode: GraphForwardMode) {
+        for opSymbol in self.opSymbols() {
+            var opSymbolVar = opSymbol as OperatorSymbol
+            opSymbolVar.serranoOperator.forwadMode = mode
+        }
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - Methods conforms to `Graph`
     
@@ -321,7 +330,9 @@ public class ComputationGraph: Graph {
         
         // allocate tensors for needs
         self.allocateAllTensors()
-//        self.allocateAllTensorsBigOne()
+        
+        // set operator in training mode
+        self.setOperatorsForwardMode(GraphForwardMode.training)
         
         // verify
         let (valid, msg) = self.verifyGraph()

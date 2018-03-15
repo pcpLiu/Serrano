@@ -26,9 +26,9 @@ public class OperatorDelegateBatchNormOp: OperatorDelegateConv {
             for j in 0..<width {
                 for c in 0..<featureDim {
                     if channelOrder == .Last {
-                        outTensor[i, j, c] = (input[i, j, c] - mean[c])/variance[c]
+                        outTensor[i, j, c] = (input[i, j, c] - mean[c]) / sqrt(variance[c] + self.batchnormOp!.epsilon)
                     } else {
-                        outTensor[c, i, j] = (input[c, i, j] - mean[c])/variance[c]
+                        outTensor[c, i, j] = (input[c, i, j] - mean[c]) / sqrt(variance[c] + self.batchnormOp!.epsilon)
                     }
                     
                     if self.batchnormOp!.useScale {
@@ -60,7 +60,7 @@ public class OperatorDelegateBatchNormOp: OperatorDelegateConv {
             let verifyReader = verifyOutput.floatValueReader
             let outputReader = output.floatValueReader
             for i in 0..<outputReader.count {
-                XCTAssertEqual(verifyReader[i], outputReader[i], accuracy: abs(verifyReader[i]*0.001))
+                XCTAssertEqual(verifyReader[i], outputReader[i], accuracy: max(0.001, abs(verifyReader[i]*0.001)))
             }
         }
     }
@@ -123,9 +123,9 @@ class BatchNormOpTest: XCTestCase {
             let op = BatchNormOperator(channelOrder: channelOrder, movingMean: movingMean, movingVar: movingVar,
                                        useScale: useScale, scale: scale, useOffset: useOffset, offset: offset,
                                        epsilon: epsilon,operatorLabel: label,
-                                      inputShape: inputShape, inTraining: inTraining)
+                                      inputShape: inputShape)
             
-            XCTAssertEqual(movingMean, op.movingMean!)
+            XCTAssertEqual(movingMean, op.movingMean!) 
             XCTAssertEqual(movingVar, op.movingVar!)
             XCTAssertEqual(channelOrder, op.channelOrder)
             XCTAssertEqual(useScale, op.useScale)
@@ -135,7 +135,6 @@ class BatchNormOpTest: XCTestCase {
             XCTAssertEqual(epsilon, op.epsilon)
             XCTAssertEqual(label, op.operatorLabel)
             XCTAssertEqual(inputShape, op.inputShape!)
-            XCTAssertEqual(inTraining, op.inTraining)
             
             print("Finish Test case \(i+1)\n")
         }
@@ -359,9 +358,9 @@ class BatchNormOpTest: XCTestCase {
                     output.append(randomTensor(fromShape: shape))
                 }
             } else {
-                var shape = TensorShape(dataType: .int, shape: [channel, randomInt([100, 200]), randomInt([100, 200])])
+                var shape = TensorShape(dataType: .int, shape: [channel, randomInt([100, 150]), randomInt([100, 150])])
                 if channelOrder == .Last {
-                    shape = TensorShape(dataType: .int, shape: [randomInt([100, 200]), randomInt([100, 200]), channel])
+                    shape = TensorShape(dataType: .int, shape: [randomInt([100, 150]), randomInt([100, 150]), channel])
                 }
                 print("Tensor shape", shape)
                 input.append(randomTensor(fromShape: shape))
@@ -369,12 +368,12 @@ class BatchNormOpTest: XCTestCase {
             }
             
             // random mean
-            let mean = randomTensor(fromShape: TensorShape(dataType: .float, shape: [channel]))
-            let variance = randomTensor(fromShape: TensorShape(dataType: .float, shape: [channel]))
-            let scale = randomTensor(fromShape: TensorShape(dataType: .float, shape: [channel]))
+            let mean = randomTensor(fromShape: TensorShape(dataType: .int, shape: [channel]), valueRange: [1, 5])
+            let variance = randomTensor(fromShape: TensorShape(dataType: .int, shape: [channel]), valueRange: [1, 5])
+            let scale = randomTensor(fromShape: TensorShape(dataType: .int, shape: [channel]), valueRange: [1, 5])
             print("scale: ", scale.flatArrayFloat())
             
-            let offset = randomTensor(fromShape: TensorShape(dataType: .float, shape: [channel]))
+            let offset = randomTensor(fromShape: TensorShape(dataType: .int, shape: [channel]), valueRange: [1, 5])
             print("offset: ", offset.flatArrayFloat())
             
             // useoffset
@@ -400,11 +399,12 @@ class BatchNormOpTest: XCTestCase {
             batchnormOp.scale = scale
             batchnormOp.offset = offset
             batchnormOp.computationDelegate = delegate
-            batchnormOp.inTraining = false
             batchnormOp.disableInputOutputCheck = true
             batchnormOp.inputTensors = input
             batchnormOp.outputTensors = output
+            batchnormOp.forwadMode = GraphForwardMode.inference
             delegate.batchnormOp = batchnormOp
+            
             
             if i % 2 == 0 {
                 print("Run CPU")

@@ -77,6 +77,9 @@ public class BinaryOperator: ComputableOperator {
     /// Binary operator can do in-place calculation
     public var inPlaceble: Bool = true
     
+    /// Default in training mode
+    public var forwadMode: GraphForwardMode = GraphForwardMode.training
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - Initializers
     

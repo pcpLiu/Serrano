@@ -97,7 +97,7 @@ public func generateArrayFromShape(shapeArray: [Int], dataType: TensorDataType) 
 }
 
 
-public func generateFlatArrayFromShape(shapeArray: [Int], dataType: TensorDataType) ->  [Float] {
+public func generateFlatArrayFromShape(shapeArray: [Int], dataType: TensorDataType, valueRange: [Int] = [-10, 10]) ->  [Float] {
     var flatArray = Array(repeating: Float(0.0), count: shapeArray.reduce(1, *))
     
     switch dataType {
@@ -106,7 +106,7 @@ public func generateFlatArrayFromShape(shapeArray: [Int], dataType: TensorDataTy
     case .double:
         for i in 0..<flatArray.count { flatArray[i] = Float(randomDouble()) }
     case .int:
-        for i in 0..<flatArray.count { flatArray[i] = Float(randomInt([-100, 100])) }
+        for i in 0..<flatArray.count { flatArray[i] = Float(randomInt(valueRange)) }
     }
     
     
@@ -124,11 +124,11 @@ public func randomTensor(dimensions: Int, dimensionSizeRange:[Int], dataType: Te
     return tensor
 }
 
-public func randomTensor(fromShape shape: TensorShape) -> Tensor {
+public func randomTensor(fromShape shape: TensorShape, valueRange: [Int] = [-10, 10]) -> Tensor {
     let tensor = Tensor(repeatingValue: 0.0, tensorShape: shape)
-    tensor.reloadData(fromFlatArray: generateFlatArrayFromShape(shapeArray: shape.shapeArray, dataType: shape.dataType), tensorShape: shape)
+    tensor.reloadData(fromFlatArray: generateFlatArrayFromShape(shapeArray: shape.shapeArray, dataType: shape.dataType, valueRange: valueRange), tensorShape: shape)
     return tensor
-}
+} 
 
 
 public class OperatorDelegateConv: OperatorCalculationDelegate {

@@ -13,8 +13,8 @@
 import XCTest
 @testable import Serrano
 
-func configureGraph() -> ForwardGraph {
-    let g = ForwardGraph()
+func configureGraph() -> InferenceGraph {
+    let g = InferenceGraph()
     
     // input
     let input = g.tensor(shape: TensorShape(dataType: .int, shape: [416, 416, 3]))
