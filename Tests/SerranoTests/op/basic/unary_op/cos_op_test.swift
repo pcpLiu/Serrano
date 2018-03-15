@@ -19,11 +19,7 @@ class CosOpDelegate: OperatorDelegateConvUnaryOp {
             for i in 0..<rawTensor.count {
                 let val = cos(readerReader[i])
                 if val.isNaN || val.isInfinite || resultReader[i].isNaN || resultReader[i].isInfinite { continue }
-                if abs(val) < 0.001 {
-                    XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
-                } else {
-                    XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
-                }
+                XCTAssertEqual(val, resultReader[i], accuracy: max(0.001, val*0.001))
             }
         }
         self.init(block: blcok)
@@ -37,7 +33,7 @@ class CosOpDelegate: OperatorDelegateConvUnaryOp {
                     if val.isNaN || val.isInfinite {
                         continue
                     }
-                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: abs(val*0.001))
+                    XCTAssertEqual(val, resultGrad.floatValueReader[i], accuracy: max(0.001, val*0.001))
                 }
             }
         }

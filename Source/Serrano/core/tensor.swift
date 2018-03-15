@@ -937,7 +937,7 @@ public class Tensor: Hashable, Equatable, TensorSymbol {
     /// - Parameter value: initial value
     public func resetValues(_ value:SupportedScalarDataType) {
         var val = value.floatValue
-        vDSP_vfill(self.contentsAddress, &val, 1, vDSP_Length(self.count))
+        vDSP_vfill(&val, self.contentsAddress, 1, vDSP_Length(self.count))
     }
     
     /// Set tensor's all elements to `0`.

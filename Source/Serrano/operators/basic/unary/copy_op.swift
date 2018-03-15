@@ -56,6 +56,9 @@ public class CopyOperator: ComputableOperator {
     
     /// Copy operator cannot do in-place calculation
     public var inPlaceble: Bool = false
+
+    /// Default in training mode
+    public var forwadMode: GraphForwardMode = GraphForwardMode.training
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - Initializers

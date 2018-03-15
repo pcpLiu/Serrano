@@ -34,6 +34,12 @@ public class OperatorFuncs {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - Unary operators
     
+    /// Copy
+    public static func copy(_ input: Tensor, output: Tensor? = nil) -> Tensor {
+        var op = CopyOperator() as ComputableOperator
+        return OperatorFuncs.calculate(&op, input: [input], output: output)
+    }
+
     /// `sinh`
     public static func sinh(_ input: Tensor, output: Tensor? = nil) -> Tensor {
         var op = SinhOperator() as ComputableOperator
