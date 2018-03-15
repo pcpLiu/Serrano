@@ -111,6 +111,17 @@
 		D4288F341F438EE900C95AB5 /* expm1_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41692FC1EE797A9002E0BE1 /* expm1_op_test.swift */; };
 		D4288F351F438EE900C95AB5 /* exp_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41692FE1EE798BA002E0BE1 /* exp_op_test.swift */; };
 		D4288F361F438EE900C95AB5 /* matrix_mult_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42030E01EF4742000969C20 /* matrix_mult_op_test.swift */; };
+		D42FB8EC205A0FAA003E64F9 /* moving_average.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225151FF3396600E9C854 /* moving_average.swift */; };
+		D442251B1FF3468700E9C854 /* stat_op.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442251A1FF3468700E9C854 /* stat_op.swift */; };
+		D442251E1FF3490200E9C854 /* initializer_op.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442251D1FF3490200E9C854 /* initializer_op.swift */; };
+		D44225201FFB1BCD00E9C854 /* stat_op.metal in Sources */ = {isa = PBXBuildFile; fileRef = D442251F1FFB1BCD00E9C854 /* stat_op.metal */; };
+		D44225241FFF2AFC00E9C854 /* stat_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225231FFF2AFC00E9C854 /* stat_op_test.swift */; };
+		D44225251FFF2AFC00E9C854 /* stat_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225231FFF2AFC00E9C854 /* stat_op_test.swift */; };
+		D44225271FFF2B0C00E9C854 /* stat_mean_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225261FFF2B0C00E9C854 /* stat_mean_op_test.swift */; };
+		D44225281FFF2B0C00E9C854 /* stat_mean_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225261FFF2B0C00E9C854 /* stat_mean_op_test.swift */; };
+		D442252B1FFF2B2C00E9C854 /* stat_var_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44225291FFF2B2C00E9C854 /* stat_var_op_test.swift */; };
+		D442252D1FFF2B3D00E9C854 /* stat_median_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442252C1FFF2B3D00E9C854 /* stat_median_op_test.swift */; };
+		D442252E1FFF2B3D00E9C854 /* stat_median_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D442252C1FFF2B3D00E9C854 /* stat_median_op_test.swift */; };
 		D44BC9971F9ED55D003D0956 /* avgpool2d_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D411F03F1F7AC79F00537972 /* avgpool2d_op_test.swift */; };
 		D44BC9981F9ED55D003D0956 /* maxpool2d_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D411F0401F7AC79F00537972 /* maxpool2d_op_test.swift */; };
 		D44BC9991F9ED55D003D0956 /* pool2d_op_test.swift in Sources */ = {isa = PBXBuildFile; fileRef = D411F0411F7AC79F00537972 /* pool2d_op_test.swift */; };
@@ -452,6 +463,14 @@
 		D4288EDA1F438CA100C95AB5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D42CA1881F7A995300098672 /* optimizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = optimizer.swift; sourceTree = "<group>"; };
 		D430C2421F2539150058715E /* symbol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = symbol.swift; sourceTree = "<group>"; };
+		D44225151FF3396600E9C854 /* moving_average.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = moving_average.swift; sourceTree = "<group>"; };
+		D442251A1FF3468700E9C854 /* stat_op.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = stat_op.swift; sourceTree = "<group>"; };
+		D442251D1FF3490200E9C854 /* initializer_op.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = initializer_op.swift; sourceTree = "<group>"; };
+		D442251F1FFB1BCD00E9C854 /* stat_op.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = stat_op.metal; sourceTree = "<group>"; };
+		D44225231FFF2AFC00E9C854 /* stat_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = stat_op_test.swift; sourceTree = "<group>"; };
+		D44225261FFF2B0C00E9C854 /* stat_mean_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = stat_mean_op_test.swift; sourceTree = "<group>"; };
+		D44225291FFF2B2C00E9C854 /* stat_var_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = stat_var_op_test.swift; sourceTree = "<group>"; };
+		D442252C1FFF2B3D00E9C854 /* stat_median_op_test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = stat_median_op_test.swift; sourceTree = "<group>"; };
 		D44DF4791FA1174E0028198E /* VGG16.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VGG16.swift; sourceTree = "<group>"; };
 		D44DF4811FA22E480028198E /* conv_op.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = conv_op.metal; sourceTree = "<group>"; };
 		D45AE6A31F3D48E90039B4E4 /* tensor_symbol_test.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = tensor_symbol_test.swift; sourceTree = "<group>"; };
@@ -775,6 +794,7 @@
 		D41291421E687AD5004F2130 /* Serrano */ = {
 			isa = PBXGroup;
 			children = (
+				D44225141FF3394800E9C854 /* training */,
 				D4AAC6FB1F90565F00B47C99 /* optimizer */,
 				D41073321F39516B00F26C1F /* model */,
 				D410732F1F390E4F00F26C1F /* graph */,
@@ -883,6 +903,7 @@
 		D4177E841E71108D00E185D9 /* operators */ = {
 			isa = PBXGroup;
 			children = (
+				D442251C1FF348E400E9C854 /* initializers */,
 				D411F02A1F7AC75D00537972 /* loss */,
 				D4DEA5DF1EF0703B00B3DE60 /* nn */,
 				D4DEA5DE1EF0702900B3DE60 /* basic */,
@@ -918,6 +939,7 @@
 		D421B3411EF478B7009D6BEA /* basic */ = {
 			isa = PBXGroup;
 			children = (
+				D44225221FFF2AE200E9C854 /* stat */,
 				D4ACFF231F02DFA100482108 /* reduce */,
 				D4A5FB0A1EFD98BD00919288 /* broadcast */,
 				D416930A1EE87389002E0BE1 /* binary_op */,
@@ -954,6 +976,42 @@
 				D4288EDA1F438CA100C95AB5 /* Info.plist */,
 			);
 			path = SerranoMacTests;
+			sourceTree = "<group>";
+		};
+		D44225141FF3394800E9C854 /* training */ = {
+			isa = PBXGroup;
+			children = (
+				D44225151FF3396600E9C854 /* moving_average.swift */,
+			);
+			path = training;
+			sourceTree = "<group>";
+		};
+		D44225171FF345A600E9C854 /* stat */ = {
+			isa = PBXGroup;
+			children = (
+				D442251A1FF3468700E9C854 /* stat_op.swift */,
+				D442251F1FFB1BCD00E9C854 /* stat_op.metal */,
+			);
+			path = stat;
+			sourceTree = "<group>";
+		};
+		D442251C1FF348E400E9C854 /* initializers */ = {
+			isa = PBXGroup;
+			children = (
+				D442251D1FF3490200E9C854 /* initializer_op.swift */,
+			);
+			path = initializers;
+			sourceTree = "<group>";
+		};
+		D44225221FFF2AE200E9C854 /* stat */ = {
+			isa = PBXGroup;
+			children = (
+				D44225231FFF2AFC00E9C854 /* stat_op_test.swift */,
+				D44225261FFF2B0C00E9C854 /* stat_mean_op_test.swift */,
+				D44225291FFF2B2C00E9C854 /* stat_var_op_test.swift */,
+				D442252C1FFF2B3D00E9C854 /* stat_median_op_test.swift */,
+			);
+			path = stat;
 			sourceTree = "<group>";
 		};
 		D45AE6A11F3D48A10039B4E4 /* graph */ = {
@@ -1283,6 +1341,7 @@
 		D4DEA5DE1EF0702900B3DE60 /* basic */ = {
 			isa = PBXGroup;
 			children = (
+				D44225171FF345A600E9C854 /* stat */,
 				D4ACFF221F02DF6800482108 /* reduce */,
 				D4A3110E1EE382F900019DBD /* unary */,
 				D4BDBA1C1EF2D54F008E7DE3 /* broadcast */,
@@ -1670,6 +1729,7 @@
 				D4288F241F438EE900C95AB5 /* cosh_op_test.swift in Sources */,
 				D4288EE61F438E8D00C95AB5 /* tools.swift in Sources */,
 				D44BC9A31F9ED5C8003D0956 /* linear_op_test.swift in Sources */,
+				D442252B1FFF2B2C00E9C854 /* stat_var_op_test.swift in Sources */,
 				D4288EEB1F438EB700C95AB5 /* computation_graph_test.swift in Sources */,
 				D4288F2A1F438EE900C95AB5 /* ceil_op_test.swift in Sources */,
 				D4288F0C1F438EDF00C95AB5 /* broadcast_add_op_test.swift in Sources */,
@@ -1688,6 +1748,7 @@
 				D4288F141F438EE400C95AB5 /* mult_op_test.swift in Sources */,
 				D4288EF01F438EC400C95AB5 /* tensor_test.swift in Sources */,
 				D4288F051F438EDA00C95AB5 /* reduce_prod_op_test.swift in Sources */,
+				D44225251FFF2AFC00E9C854 /* stat_op_test.swift in Sources */,
 				D4288F061F438EDA00C95AB5 /* reduce_max_op_test.swift in Sources */,
 				D4288F081F438EDA00C95AB5 /* reduce_mean_op_test.swift in Sources */,
 				D44BC99E1F9ED55E003D0956 /* sumpool2d_op_test.swift in Sources */,
@@ -1698,6 +1759,7 @@
 				D4288F1C1F438EE900C95AB5 /* cos_op_test.swift in Sources */,
 				D4288F2F1F438EE900C95AB5 /* sqrt_op_test.swift in Sources */,
 				D4288F1D1F438EE900C95AB5 /* arcsin_op_test.swift in Sources */,
+				D442252E1FFF2B3D00E9C854 /* stat_median_op_test.swift in Sources */,
 				D4288EE91F438EB700C95AB5 /* scalar_symbol_test.swift in Sources */,
 				D4288F2C1F438EE900C95AB5 /* round_op_test.swift in Sources */,
 				D4288F031F438EDA00C95AB5 /* reduce_op_test.swift in Sources */,
@@ -1711,6 +1773,7 @@
 				D4288F231F438EE900C95AB5 /* sinh_op_test.swift in Sources */,
 				D4BC26971FABBE4D00AC96D5 /* TestLibrary.swift in Sources */,
 				D4288F0E1F438EDF00C95AB5 /* broadcast_mult_op_test.swift in Sources */,
+				D44225281FFF2B0C00E9C854 /* stat_mean_op_test.swift in Sources */,
 				D4288F271F438EE900C95AB5 /* arccosh_op_test.swift in Sources */,
 				D44BC99D1F9ED55E003D0956 /* pool2d_op_test.swift in Sources */,
 				D4288EEC1F438EBE00C95AB5 /* utils_test.swift in Sources */,
@@ -1754,10 +1817,12 @@
 				D4BC25DB1FAA579900AC96D5 /* batchnorm_op.swift in Sources */,
 				D4BC25DC1FAA579900AC96D5 /* pooling_op.swift in Sources */,
 				D4BC269A1FABBF5C00AC96D5 /* flatbuffer.swift in Sources */,
+				D44225201FFB1BCD00E9C854 /* stat_op.metal in Sources */,
 				D4BC25DD1FAA579900AC96D5 /* pooling_op.metal in Sources */,
 				D4BC25DE1FAA579900AC96D5 /* conv_op.swift in Sources */,
 				D4BC25DF1FAA579900AC96D5 /* conv_op.metal in Sources */,
 				D4BC25E01FAA579900AC96D5 /* img2col_op.swift in Sources */,
+				D42FB8EC205A0FAA003E64F9 /* moving_average.swift in Sources */,
 				D4BC25E11FAA579900AC96D5 /* img2col_op.metal in Sources */,
 				D4BC25E21FAA579900AC96D5 /* activation_op.swift in Sources */,
 				D422A7CE1FB1623E002BA9E3 /* forward_graph.swift in Sources */,
@@ -1777,6 +1842,8 @@
 				D46E47B31FCD09910088730C /* batchnorm_op.metal in Sources */,
 				D4BC25EF1FAA579900AC96D5 /* binary_op.metal in Sources */,
 				D4BC25F01FAA579900AC96D5 /* matrix_mult_op.swift in Sources */,
+				D442251B1FF3468700E9C854 /* stat_op.swift in Sources */,
+				D442251E1FF3490200E9C854 /* initializer_op.swift in Sources */,
 				D4BC25F11FAA579900AC96D5 /* matrix_mult_op.metal in Sources */,
 				D4BC25F21FAA579900AC96D5 /* utils.swift in Sources */,
 				D4BC25F31FAA579900AC96D5 /* logging.swift in Sources */,
@@ -1827,6 +1894,7 @@
 				D44BC9B41F9ED5C8003D0956 /* softplus_op_test.swift in Sources */,
 				D4EECAEF1E846C890014F5CE /* engine_test.swift in Sources */,
 				D4BD5DFF1EE72F4F0078C508 /* tanh_op_test.swift in Sources */,
+				D44225241FFF2AFC00E9C854 /* stat_op_test.swift in Sources */,
 				D48F7E6B1F1E668F007CB3BF /* pad_op_test.swift in Sources */,
 				D4244CF31F09BCC1000A4693 /* reduce_mean_op_test.swift in Sources */,
 				D418580B1FB00B380060B979 /* flatbuffers_test.swift in Sources */,
@@ -1858,6 +1926,7 @@
 				D44BC9B11F9ED5C8003D0956 /* selu_op_test.swift in Sources */,
 				D4BD5DC71EE64C850078C508 /* unary_op_test.swift in Sources */,
 				D4BD5DF41EE70CB40078C508 /* sinh_op_test.swift in Sources */,
+				D44225271FFF2B0C00E9C854 /* stat_mean_op_test.swift in Sources */,
 				D4BCF90C1F0E8A6E004D0A12 /* broadcast_div_op_test.swift in Sources */,
 				D4BD5DCB1EE6FF440078C508 /* tan_op_test.swift in Sources */,
 				D44DF47B1FA1174E0028198E /* VGG16.swift in Sources */,
@@ -1893,6 +1962,7 @@
 				D4DEA5D71EF0690F00B3DE60 /* mult_op_test.swift in Sources */,
 				D4244CED1F0859BE000A4693 /* reduce_max_op_test.swift in Sources */,
 				D44BC9B51F9ED5C8003D0956 /* softsign_op_test.swift in Sources */,
+				D442252D1FFF2B3D00E9C854 /* stat_median_op_test.swift in Sources */,
 				D4BD5DE81EE70A980078C508 /* abs_op_test.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

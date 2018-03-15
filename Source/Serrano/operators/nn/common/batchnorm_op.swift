@@ -12,13 +12,6 @@ import Dispatch
 import Accelerate
 
 
-//typedef struct {
-//    short channelPosition; // 0 --> First, 1 --> Last
-//    int channels;
-//    int inputWidth;
-//    int inputHeight;
-//} BatchNormInfo;
-
 /// Corresponding to `BatchNormInfo` in metal file
 public struct BatchNormInfo {
     var channelPosition: MetalShort
@@ -94,6 +87,9 @@ public class BatchNormOperator: ComputableOperator {
     /// If use offset tensor
     public var useOffset: Bool
     
+    /// momentum
+    public var momentum: Float 
+    
     /// offset tensor to output.
     /// Should be same dimension with feature axis.
     public var offset: Tensor?
@@ -102,8 +98,12 @@ public class BatchNormOperator: ComputableOperator {
     /// Should not be `nil` if used in Graph API.
     public var inputShape: TensorShape?
     
-    /// If in training or not.
-    public var inTraining: Bool
+    /// Default in training mode
+    public var forwadMode: GraphForwardMode = GraphForwardMode.training
+    
+    internal var _movingMean: ExponentialMovingAverage?
+    
+    internal var _movingVar: ExponentialMovingAverage?
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - init
@@ -116,6 +116,7 @@ public class BatchNormOperator: ComputableOperator {
                 useOffset: Bool = true,
                 offset: Tensor? = nil,
                 epsilon: Float = 0.001,
+                momentum: Float = 0.99,
                 metalKernelFuncLabel: String = "",
                 operatorLabel: String = "BatchNormalizationOperator",
                 inputTensors: [Tensor]? = nil,
@@ -123,8 +124,7 @@ public class BatchNormOperator: ComputableOperator {
                 disableInputOutputCheck: Bool = false,
                 trainable: Bool = false,
                 mapType: OperatorMappingType = OperatorMappingType.OneToOne,
-                inputShape: TensorShape? = nil,
-                inTraining: Bool = false) {
+                inputShape: TensorShape? = nil) {
         self.channelOrder = channelOrder
         self.movingMean = movingMean
         self.movingVar = movingVar
@@ -133,6 +133,7 @@ public class BatchNormOperator: ComputableOperator {
         self.useOffset = useOffset
         self.offset = offset
         self.epsilon = epsilon
+        self.momentum = momentum
         self.metalKernelFuncLabel = metalKernelFuncLabel
         self.operatorLabel = operatorLabel
         self.inputTensors = inputTensors
@@ -141,13 +142,22 @@ public class BatchNormOperator: ComputableOperator {
         self.trainable = trainable
         self.mapType = mapType
         self.inputShape = inputShape
-        self.inTraining = inTraining
+        
+        if self.movingMean == nil {
+            self._movingMean = nil
+        } else {
+            self._movingMean = ExponentialMovingAverage(self.movingMean!)
+        }
+        
+        if self.movingVar == nil {
+            self._movingVar = nil
+        } else {
+            self._movingVar = ExponentialMovingAverage(self.movingVar!)
+        }
     }
-    
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // MARK: - Conforms to ComputableOperator, forward
-    
     
     /// Outputshape are same as input shapes.
     /// - Note: All input shapes should have same dimension
@@ -288,41 +298,48 @@ public class BatchNormOperator: ComputableOperator {
     }
     
     internal func cpu() {
-        if self.inTraining {
-            self.cpu_train()
-        } else {
-            self.cpu_inference()
+    if self.forwadMode == GraphForwardMode.training {
+            self.trainPrepare()
+            self.updateMeanAndVar()
         }
+        self.cpu_inference()
     }
     
     internal func gpu() {
-        if self.inTraining {
-            self.gpu_train()
-        } else {
-            self.gpu_inference()
+        if self.forwadMode == GraphForwardMode.training {
+            self.trainPrepare()
+            self.updateMeanAndVar()
+        }
+        self.gpu_inference()
+    }
+    
+    internal func trainPrepare() {
+        if self._movingMean == nil {
+            self._movingMean = ExponentialMovingAverage(self.movingMean!)
+        }
+        
+        if self._movingVar == nil {
+            self._movingVar = ExponentialMovingAverage(self.movingVar!)
         }
     }
-    
-    /// CPU in training
-    internal func cpu_train() {
-        //TODO: Implementation
-    }
-    
-    /// GPU in training
-    internal func gpu_train() {
-        //TODO: Implementation
+
+    /// Update movingMean and movingVar from all inputTensors
+    internal func updateMeanAndVar() {
+        //TODO: calcualte mean, var and then update
     }
     
     /// CPU in inference
     internal func cpu_inference() {
-        //TODO: FIX ERROR
-        // sqrt(var + epsilon)
-//        let
-        
-        // get reciprocal of movingVar
-        let movingVarienceReciprocal = Tensor(repeatingValue: 0.0, tensorShape: self.movingVar!.shape)
+        // 1 / sqrt(movingVar + epsilon)
+        let movingVarienceReciprocal = OperatorFuncs.copy(self.movingVar!)
         var count = Int32(self.movingVar!.count)
-        vvrecf(movingVarienceReciprocal._dataMemoryBaseAdrress, self.movingVar!._dataMemoryBaseAdrress, &count)
+        // movingVar + epsilon
+        vDSP_vsadd(movingVarienceReciprocal._dataMemoryBaseAdrress, 1,
+                   &self.epsilon,
+                   movingVarienceReciprocal._dataMemoryBaseAdrress, 1,
+                   vDSP_Length(count))
+        // inverse sqrt
+        vvrsqrtf(movingVarienceReciprocal._dataMemoryBaseAdrress, movingVarienceReciprocal._dataMemoryBaseAdrress, &count)
         let movingVareReciprocalAddr = movingVarienceReciprocal._dataMemoryBaseAdrress
         
         let movingMeanAddr = self.movingMean!._dataMemoryBaseAdrress

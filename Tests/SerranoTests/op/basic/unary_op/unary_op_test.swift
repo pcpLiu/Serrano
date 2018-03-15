@@ -294,7 +294,6 @@ public class UnarOpTest<OpDelegate: OperatorDelegateConvUnaryOp, UnaryOp: UnaryO
             
             if i % 2 == 0 {
                 print("Run on CPU")
-                op.compute( .CPU)
                 workingGroup.enter()
                 op.gradComputAsync(.CPU)
             } else {
@@ -303,7 +302,6 @@ public class UnarOpTest<OpDelegate: OperatorDelegateConvUnaryOp, UnaryOp: UnaryO
                     print("No gpu available, give up Test \(i+1)\n\n\n)")
                     continue
                 }
-                op.compute( .GPU)
                 workingGroup.enter()
                 op.gradComputAsync(.GPU)
             }

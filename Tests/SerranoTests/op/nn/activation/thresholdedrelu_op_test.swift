@@ -20,11 +20,7 @@ class ThresholdedReLUOpDelegate: OperatorDelegateConvUnaryOp {
 				var val = readerReader[i]
 				if val <= alpha { val = 0.0 }
 				if val.isNaN || val.isInfinite || resultReader[i].isInfinite || resultReader[i].isNaN {continue}
-				if abs(val) < 0.001 {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: 0.001)
-				} else {
-					XCTAssertEqualWithAccuracy(val, resultReader[i], accuracy: abs(val*0.001))
-				}
+				XCTAssertEqual(val, resultReader[i], accuracy: max(0.001, abs(val*0.001)))
 			}
 		}
 		self.init(block: blcok)
