@@ -131,6 +131,15 @@ namespace serrano_ios {
         out_tensor[gid.x] = (in_tensor[gid.x] >= 0.0f ? in_tensor[gid.x] : alpha * in_tensor[gid.x]);
     }
     
+    kernel void LeakyReLU_grad(constant float* in_tensor    [[ buffer(0) ]],
+                               device float* out_tensor    [[ buffer(1) ]],
+                               constant uint& count    [[ buffer(2) ]],
+                               constant float& alpha [[buffer(3)]],
+                               uint2 gid             [[ thread_position_in_grid ]]) {
+        if (gid.x >= count) return;
+        out_tensor[gid.x] = (in_tensor[gid.x] >= 0.0f ? 1.0f : alpha);
+    }
+    
     kernel void ThresholdedReLU(constant float* in_tensor    [[ buffer(0) ]],
                                 device float* out_tensor    [[ buffer(1) ]],
                                 constant uint& count    [[ buffer(2) ]],
@@ -138,6 +147,15 @@ namespace serrano_ios {
                                 uint2 gid             [[ thread_position_in_grid ]]) {
         if (gid.x >= count) return;
         out_tensor[gid.x] = (in_tensor[gid.x] > alpha ? in_tensor[gid.x] : 0.0f);
+    }
+    
+    kernel void ThresholdedReLU_grad(constant float* in_tensor    [[ buffer(0) ]],
+                                     device float* out_tensor    [[ buffer(1) ]],
+                                     constant uint& count    [[ buffer(2) ]],
+                                     constant float& alpha [[buffer(3)]],
+                                     uint2 gid             [[ thread_position_in_grid ]]) {
+        if (gid.x >= count) return;
+        out_tensor[gid.x] = (in_tensor[gid.x] > alpha ? 1.0f : 0.0f);
     }
     
     kernel void PReLU(constant float* in_tensor    [[ buffer(0) ]],
