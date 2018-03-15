@@ -119,9 +119,6 @@ xcodebuild -project serrano.xcodeproj -scheme SerranoMacTests -destination "plat
 
 echo "End Test macOS"
 
-# The build finished without returning an error so dump a tail of the output
-dump_output
-
 #upload_cov()
 
 # nicely terminate the ping output loop
