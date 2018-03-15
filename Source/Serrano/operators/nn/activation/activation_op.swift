@@ -1055,8 +1055,7 @@ public class LeakyReLUOperator: ELUOperator {
             print("NOT USE") // will override cpu(). this block will not be used
         }
         let gradBlock = { (inputs: [Tensor],  mode: OperatorComputationMode) -> [DataSymbolSupportedDataType] in
-            //TODO: implemented
-            fatalError("Not implemented")
+            fatalError("NOT USE")
         }
         let defaultLabel = "LeakyReLUOperator"
         let kernelLabel = "LeakyReLU"
@@ -1064,6 +1063,8 @@ public class LeakyReLUOperator: ELUOperator {
                   metalKernelFuncLabel: kernelLabel, computationDelegate: computationDelegate,
                   inputTensors: nil, outputTensors: nil)
         self.alpha = 0.3
+        
+        self.gradKernelLabel = "LeakyReLU_grad"
     }
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1079,14 +1080,77 @@ public class LeakyReLUOperator: ELUOperator {
                 let outputReadre = self.outputTensors![tensorIndex].floatValueReader
                 for i in 0..<self.outputTensors![tensorIndex].count {
                     if inputReader[i] >= 0.0 { outputReadre[i] = inputReader[i] }
-                    else { outputReadre[i] = self.alpha * inputReader[i] }
+                    else { outputReadre[i] = self.alpha * inputReader[i]}
                 }
                 workGroup.leave()
             }
         }
         workGroup.wait()
     }
-
+    
+    /// dy/dx = 1 (x >= 0), else dy/dx = alpha
+    override func cpuGrad() -> [Tensor] {
+        var grads = [Tensor]()
+        for input in self.inputTensors! {
+            let grad = SerranoResourceManager.globalManager.allocateUnamangedTensor(input.shape)
+            grads.append(grad)
+            
+            for i in 0..<input.count {
+                grad.floatValueReader[i] = input.floatValueReader[i] >= 0.0 ? 1.0 : self.alpha
+            }
+        }
+        return grads
+    }
+    
+    /// Override since has extrax arugement alpha for kernel function
+    override func gpuGrad(_ kernelLabel: String) -> [Tensor] {
+        // prepare resource
+        let engine = SerranoEngine.configuredEngine
+        var kernel: MTLComputePipelineState?
+        var commandBuffer: MTLCommandBuffer?
+        
+        var info = ""
+        (kernel, info) = engine.loadGPUKernel(kernelLabel: kernelLabel)
+        guard kernel != nil else {
+            fatalError("[Serrano] Failed to load kernel \(kernelLabel). Info: \(info)")
+        }
+        
+        commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
+        guard commandBuffer != nil else {
+            fatalError("[Serrano] Failed to make new command buffer.")
+        }
+        
+        var grads = [Tensor]()
+        for input in self.inputTensors! {
+            let grad = SerranoResourceManager.globalManager.allocateUnamangedTensor(input.shape)
+            grads.append(grad)
+            
+            let inputBufferResource = input.gpuBufferResource()
+            let outputBufferResource = grad.gpuBufferResource()
+            var count = input.count.metalUInt
+            
+            let encoder = commandBuffer!.makeComputeCommandEncoder()
+            encoder.setComputePipelineState(kernel!)
+            encoder.setBuffer(inputBufferResource.buffer, offset: inputBufferResource.offset, at: 0)
+            encoder.setBuffer(outputBufferResource.buffer, offset: outputBufferResource.offset, at: 1)
+            encoder.setBytes(&count, length: MemoryLayout<MetalUInt>.stride, at: 2)
+            encoder.setBytes(&self.alpha, length: MemoryLayout<Float>.stride, at: 3)
+            
+            // dispatch
+            let threadsPerThreadgroup = MTLSizeMake(kernel!.threadExecutionWidth,
+                                                    1,
+                                                    1)
+            let threadgroupsPerGrid = MTLSizeMake((input.count + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
+                                                  1,
+                                                  1)
+            encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+            encoder.endEncoding()
+        }
+        
+        commandBuffer!.commit()
+        commandBuffer!.waitUntilCompleted()
+        return grads
+    }
 }
 
 
@@ -1113,8 +1177,7 @@ public class ThresholdedReLUOperator: ELUOperator {
             print("NOT USE") // will override cpu(). this block will not be used
         }
         let gradBlock = { (inputs: [Tensor],  mode: OperatorComputationMode) -> [DataSymbolSupportedDataType] in
-            //TODO: implemented
-            fatalError("Not implemented")
+            fatalError("NOT USE")
         }
         let defaultLabel = "ThresholdedReLUOperator"
         let kernelLabel = "ThresholdedReLU"
@@ -1122,6 +1185,8 @@ public class ThresholdedReLUOperator: ELUOperator {
                   metalKernelFuncLabel: kernelLabel, computationDelegate: computationDelegate,
                   inputTensors: nil, outputTensors: nil)
         self.alpha = 1.0
+        
+        self.gradKernelLabel = "ThresholdedReLU_grad"
     }
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1143,6 +1208,70 @@ public class ThresholdedReLUOperator: ELUOperator {
             }
         }
         workGroup.wait()
+    }
+    
+    /// dy/dx = 1 (x > alpha), else dy/dx = 0
+    override func cpuGrad() -> [Tensor] {
+        var grads = [Tensor]()
+        for input in self.inputTensors! {
+            let grad = SerranoResourceManager.globalManager.allocateUnamangedTensor(input.shape)
+            grads.append(grad)
+            
+            for i in 0..<input.count {
+                grad.floatValueReader[i] = input.floatValueReader[i] > self.alpha ? 1.0 : 0.0
+            }
+        }
+        return grads
+    }
+    
+    /// Override since has extrax arugement alpha for kernel function
+    override func gpuGrad(_ kernelLabel: String) -> [Tensor] {
+        // prepare resource
+        let engine = SerranoEngine.configuredEngine
+        var kernel: MTLComputePipelineState?
+        var commandBuffer: MTLCommandBuffer?
+        
+        var info = ""
+        (kernel, info) = engine.loadGPUKernel(kernelLabel: kernelLabel)
+        guard kernel != nil else {
+            fatalError("[Serrano] Failed to load kernel \(kernelLabel). Info: \(info)")
+        }
+        
+        commandBuffer = engine.serranoCommandQueue?.makeCommandBuffer()
+        guard commandBuffer != nil else {
+            fatalError("[Serrano] Failed to make new command buffer.")
+        }
+        
+        var grads = [Tensor]()
+        for input in self.inputTensors! {
+            let grad = SerranoResourceManager.globalManager.allocateUnamangedTensor(input.shape)
+            grads.append(grad)
+            
+            let inputBufferResource = input.gpuBufferResource()
+            let outputBufferResource = grad.gpuBufferResource()
+            var count = input.count.metalUInt
+            
+            let encoder = commandBuffer!.makeComputeCommandEncoder()
+            encoder.setComputePipelineState(kernel!)
+            encoder.setBuffer(inputBufferResource.buffer, offset: inputBufferResource.offset, at: 0)
+            encoder.setBuffer(outputBufferResource.buffer, offset: outputBufferResource.offset, at: 1)
+            encoder.setBytes(&count, length: MemoryLayout<MetalUInt>.stride, at: 2)
+            encoder.setBytes(&self.alpha, length: MemoryLayout<Float>.stride, at: 3)
+            
+            // dispatch
+            let threadsPerThreadgroup = MTLSizeMake(kernel!.threadExecutionWidth,
+                                                    1,
+                                                    1)
+            let threadgroupsPerGrid = MTLSizeMake((input.count + threadsPerThreadgroup.width - 1) / threadsPerThreadgroup.width,
+                                                  1,
+                                                  1)
+            encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+            encoder.endEncoding()
+        }
+        
+        commandBuffer!.commit()
+        commandBuffer!.waitUntilCompleted()
+        return grads
     }
 }
 
